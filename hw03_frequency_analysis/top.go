@@ -7,14 +7,21 @@ import (
 
 func Top10(text string) []string {
 	bufferWordCount := map[string]int{}
+
 	text = strings.ReplaceAll(text, "\n", " ")
 	text = strings.ReplaceAll(text, "\t", "")
+
 	bufferWords := strings.Split(text, " ")
+
 	for _, str := range bufferWords {
 		if str == "" {
 			continue
 		}
-		bufferWordCount[str]++
+		if str == "-" {
+			continue
+		}
+
+		bufferWordCount[strings.Trim(strings.ToLower(str), "!\"#$%&’()*+,/:;<=>?@[]^_{|}~.`\\'")]++
 	}
 	keys := make([]string, 0, len(bufferWordCount))
 
@@ -37,5 +44,8 @@ func Top10(text string) []string {
 
 	result = append(result, keys...)
 
+	/*for _, word := range keys {
+		fmt.Printf("%s %d\n", word, bufferWordCount[word])
+	}*/
 	return result
 }
