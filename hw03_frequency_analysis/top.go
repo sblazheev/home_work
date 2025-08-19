@@ -1,9 +1,12 @@
 package hw03frequencyanalysis
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 )
+
+var re = regexp.MustCompile("[0-9а-яА-ЯA-Za-z]+")
 
 func Top10(text string) []string {
 	bufferWordCount := map[string]int{}
@@ -20,8 +23,11 @@ func Top10(text string) []string {
 		if str == "-" {
 			continue
 		}
-
-		bufferWordCount[strings.Trim(strings.ToLower(str), "!\"#$%&’()*+,/:;<=>?@[]^_{|}~.`\\'")]++
+		if re.MatchString(str) {
+			bufferWordCount[strings.Trim(strings.ToLower(str), "!\"#$%&’()*+,/:;<=>?@[]^_{|}~.`\\'")]++
+		} else {
+			bufferWordCount[strings.ToLower(str)]++
+		}
 	}
 	keys := make([]string, 0, len(bufferWordCount))
 
