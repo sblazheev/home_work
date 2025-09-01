@@ -6,46 +6,42 @@ import (
 
 type Key string
 
-var mu sync.Mutex
-
 type Cache interface {
 	Set(key Key, value interface{}) bool
 	Get(key Key) (interface{}, bool)
 	Clear()
 }
 type lruCache struct {
-	Cache // Remove me after realization.
-
+	Cache    // Remove me after realization.
+	mu       sync.Mutex
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
 }
+type lruCacheValue struct {
+	lruKey Key
+	val    interface{}
+}
 
 func (lc *lruCache) Get(key Key) (interface{}, bool) {
-	mu.Lock()
-	defer mu.Unlock()
+	lc.mu.Lock()
+	defer lc.mu.Unlock()
 
 	item, ok := lc.items[key]
 	if ok {
 		lc.queue.MoveToFront(item)
-		return item.Value.(struct {
-			lruKey Key
-			val    interface{}
-		}).val, ok
+		return item.Value.(lruCacheValue).val, ok
 	}
 	return nil, false
 }
 
 func (lc *lruCache) Set(key Key, value interface{}) bool {
-	mu.Lock()
-	defer mu.Unlock()
+	lc.mu.Lock()
+	defer lc.mu.Unlock()
 
 	item, isset := lc.items[key]
 	if isset {
-		item.Value = struct {
-			lruKey Key
-			val    interface{}
-		}{
+		item.Value = lruCacheValue{
 			lruKey: key,
 			val:    value,
 		}
@@ -54,16 +50,10 @@ func (lc *lruCache) Set(key Key, value interface{}) bool {
 		if lc.queue.Len() == lc.capacity {
 			deleteItem := lc.queue.Back()
 			lc.queue.Remove(deleteItem)
-			keyDelete := deleteItem.Value.(struct {
-				lruKey Key
-				val    interface{}
-			}).lruKey
+			keyDelete := deleteItem.Value.(lruCacheValue).lruKey
 			delete(lc.items, keyDelete)
 		}
-		item = lc.queue.PushFront(struct {
-			lruKey Key
-			val    interface{}
-		}{
+		item = lc.queue.PushFront(lruCacheValue{
 			lruKey: key,
 			val:    value,
 		})
@@ -73,8 +63,8 @@ func (lc *lruCache) Set(key Key, value interface{}) bool {
 }
 
 func (lc *lruCache) Clear() {
-	mu.Lock()
-	defer mu.Unlock()
+	lc.mu.Lock()
+	defer lc.mu.Unlock()
 
 	lc.queue = NewList()
 	lc.items = make(map[Key]*ListItem, lc.capacity)

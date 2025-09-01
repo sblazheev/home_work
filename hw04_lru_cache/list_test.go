@@ -74,5 +74,46 @@ func TestListAdvancedList(t *testing.T) {
 		}
 		l.PushBack(vehicle)
 		require.Equal(t, vehicle, l.Back().Value)
+
+		l = NewList()
+		item := l.PushFront(10)
+		l.MoveToFront(item)
+
+		elems := make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{10}, elems)
+
+		l = NewList()
+		l.MoveToFront(&ListItem{Value: 70})
+
+		elems = make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{70}, elems)
+	})
+	t.Run("MoveToFront tests", func(t *testing.T) {
+		l := NewList()
+		item := l.PushFront(10)
+		l.MoveToFront(item)
+
+		require.Equal(t, l.Front(), item)
+
+		elems := make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{10}, elems)
+
+		l = NewList()
+		l.MoveToFront(&ListItem{Value: 70})
+
+		elems = make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{70}, elems)
 	})
 }
