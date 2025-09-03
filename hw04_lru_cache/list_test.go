@@ -49,3 +49,71 @@ func TestList(t *testing.T) {
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
 }
+
+func TestListAdvancedList(t *testing.T) {
+	t.Run("advanced tests", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(10)
+		l.Remove(l.Front())
+		require.Equal(t, (*ListItem)(nil), l.Front())
+		require.Equal(t, (*ListItem)(nil), l.Back())
+
+		l.PushBack(10)
+		l.Remove(l.Back())
+		require.Equal(t, (*ListItem)(nil), l.Front())
+		require.Equal(t, (*ListItem)(nil), l.Back())
+
+		vehicle := struct {
+			vendor  string
+			model   string
+			mileage int
+		}{
+			vendor:  "Ford",
+			model:   "Taurus",
+			mileage: 200000,
+		}
+		l.PushBack(vehicle)
+		require.Equal(t, vehicle, l.Back().Value)
+
+		l = NewList()
+		item := l.PushFront(10)
+		l.MoveToFront(item)
+
+		elems := make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{10}, elems)
+
+		l = NewList()
+		l.MoveToFront(&ListItem{Value: 70})
+
+		elems = make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{70}, elems)
+	})
+	t.Run("MoveToFront tests", func(t *testing.T) {
+		l := NewList()
+		item := l.PushFront(10)
+		l.MoveToFront(item)
+
+		require.Equal(t, l.Front(), item)
+
+		elems := make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{10}, elems)
+
+		l = NewList()
+		l.MoveToFront(&ListItem{Value: 70})
+
+		elems = make([]int, 0, l.Len())
+		for i := l.Front(); i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Equal(t, []int{70}, elems)
+	})
+}

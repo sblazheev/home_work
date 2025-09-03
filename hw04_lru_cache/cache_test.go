@@ -21,7 +21,7 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("simple", func(t *testing.T) {
-		c := NewCache(5)
+		c := NewCache(2)
 
 		wasInCache := c.Set("aaa", 100)
 		require.False(t, wasInCache)
@@ -49,31 +49,56 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
+	/*t.Run("purge logic", func(t *testing.T) {
 		// Write me
+	})*/
+}
+
+func TestListAdvancedMap(t *testing.T) {
+	t.Run("advanced tests", func(t *testing.T) {
+		c := NewCache(2)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		c.Set("ccc", 200)
+
+		_, ok := c.Get("aaa")
+		require.False(t, ok)
+
+		val, _ := c.Get("bbb")
+		require.Equal(t, 200, val)
+
+		c.Clear()
+		_, ok = c.Get("aaa")
+		require.False(t, ok)
 	})
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Skip() // Remove me if task with asterisk completed.
+	t.Run("Multithreading", func(t *testing.T) {
+		c := NewCache(10)
+		wg := &sync.WaitGroup{}
+		wg.Add(2)
 
-	c := NewCache(10)
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_000; i++ {
+				c.Set(Key(strconv.Itoa(i)), i)
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
-			c.Set(Key(strconv.Itoa(i)), i)
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_000; i++ {
+				c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
-			c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
-		}
-	}()
-
-	wg.Wait()
+		require.False(t, false)
+		wg.Wait()
+	})
 }
