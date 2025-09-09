@@ -12,7 +12,7 @@ type Task func() error
 func Run(tasks []Task, n, m int) error {
 	wg := sync.WaitGroup{}
 	lockShift := sync.Mutex{}
-	lockErrorCount := sync.Mutex{}
+	lockErrorCount := sync.RWMutex{}
 	errorCount := 0
 	shift := -1
 
@@ -22,16 +22,16 @@ func Run(tasks []Task, n, m int) error {
 			defer wg.Done()
 			for {
 				if m > 0 {
-					lockErrorCount.Lock()
+					lockErrorCount.RLock()
 					if errorCount >= m {
-						lockErrorCount.Unlock()
+						lockErrorCount.RUnlock()
 						return
 					}
-					lockErrorCount.Unlock()
+					lockErrorCount.RUnlock()
 				}
+
 				lockShift.Lock()
 				shift++
-
 				if shift < len(tasks) {
 					taskIndex := shift
 					lockShift.Unlock()

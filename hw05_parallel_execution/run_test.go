@@ -105,4 +105,34 @@ func TestRun(t *testing.T) {
 		require.Error(t, err)
 		require.LessOrEqual(t, runTasksCount, int32(workersCount+maxErrorsCount))
 	})
+
+	t.Run("tasks Eventually", func(t *testing.T) {
+		tasksCount := 50
+		tasks := make([]Task, 0, tasksCount)
+
+		var runConcurrencyTasks int32
+		var sumTime time.Duration
+		taskSleep := time.Millisecond * 1
+
+		for i := 0; i < tasksCount; i++ {
+			sumTime += taskSleep
+
+			tasks = append(tasks, func() error {
+				atomic.AddInt32(&runConcurrencyTasks, 1)
+				time.Sleep(taskSleep)
+				atomic.AddInt32(&runConcurrencyTasks, -1)
+				return nil
+			})
+		}
+
+		workersCount := 5
+		maxErrorsCount := 0
+		go func() {
+			require.Eventually(t, func() bool {
+				return atomic.LoadInt32(&runConcurrencyTasks) == int32(workersCount)
+			}, sumTime/time.Duration(workersCount), taskSleep, "tasks were run sequentially?")
+		}()
+
+		Run(tasks, workersCount, maxErrorsCount)
+	})
 }
