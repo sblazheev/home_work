@@ -8,35 +8,33 @@ type (
 
 type Stage func(in In) (out Out)
 
-func inWrapper(in In, done In) Out {
-	out := make(Bi)
+func ExecutePipeline(in In, done In, stages ...Stage) Out {
+	for _, stage := range stages {
+		out := startStage(stage, in, done)
+		in = out
+	}
+	return in
+}
+
+func startStage(stage Stage, in In, done In) Out {
+	out := make(Bi, 1)
 	go func() {
-		defer func() {
-			close(out)
-			//nolint
-			for range in {
-			}
-		}()
+		defer close(out)
 		for {
 			select {
+			case <-done:
+				return
 			case v, ok := <-in:
 				if !ok {
 					return
 				}
-				out <- v
-			case <-done:
-				return
+				stageIn := make(Bi, 1)
+				stageIn <- v
+				close(stageIn)
+				stageOut := stage(stageIn)
+				out <- <-stageOut
 			}
 		}
 	}()
 	return out
-}
-
-func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	for _, stage := range stages {
-		in = inWrapper(in, done)
-		in = stage(in)
-	}
-
-	return in
 }
