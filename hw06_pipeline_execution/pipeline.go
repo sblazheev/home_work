@@ -1,5 +1,9 @@
 package hw06pipelineexecution
 
+import (
+	"log"
+)
+
 type (
 	In  = <-chan interface{}
 	Out = In
@@ -9,15 +13,13 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	for _, stage := range stages {
-		out := startStage(stage, in, done)
-		in = out
-	}
-	return in
-}
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
-func startStage(stage Stage, in In, done In) Out {
-	out := make(Bi, 1)
+	for _, s := range stages {
+		in = wrapperDone(s, in, done)
+	}
+
+	out := make(Bi)
 	go func() {
 		defer close(out)
 		for {
@@ -28,11 +30,32 @@ func startStage(stage Stage, in In, done In) Out {
 				if !ok {
 					return
 				}
-				stageIn := make(Bi, 1)
-				stageIn <- v
-				close(stageIn)
-				stageOut := stage(stageIn)
-				out <- <-stageOut
+				out <- v
+			}
+		}
+	}()
+	return out
+}
+
+func wrapperDone(stage Stage, in In, done In) Out {
+	out := make(Bi)
+	stageOut := stage(in)
+	go func() {
+		defer close(out)
+		defer func() {
+			//nolint
+			for range stageOut {
+			}
+		}()
+		for {
+			select {
+			case v, ok := <-stageOut:
+				if !ok {
+					return
+				}
+				out <- v
+			case <-done:
+				return
 			}
 		}
 	}()
