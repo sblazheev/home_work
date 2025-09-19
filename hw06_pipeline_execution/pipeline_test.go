@@ -175,6 +175,59 @@ func TestExtPipeline(t *testing.T) {
 	})
 }
 
+func TestExtAllStageStop(t *testing.T) {
+	wg := sync.WaitGroup{}
+	// Stage generator
+	g := func(_ string, f func(v interface{}) interface{}) Stage {
+		return func(in In) Out {
+			out := make(Bi)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				defer close(out)
+				for v := range in {
+					time.Sleep(sleepPerStage)
+					out <- f(v)
+				}
+			}()
+			return out
+		}
+	}
+
+	stages := []Stage{
+		g("Dummy", func(v interface{}) interface{} { return v }),
+		g("Multiplier (* 2)", func(v interface{}) interface{} { return v.(int) * 2 }),
+	}
+
+	t.Run("done case", func(t *testing.T) {
+		in := make(Bi)
+		done := make(Bi)
+		data := []int{1, 2, 3, 4, 5}
+
+		// Abort after 200ms
+		abortDur := time.Microsecond * 1000 * 399
+		go func() {
+			<-time.After(abortDur)
+			close(done)
+		}()
+
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		result := make([]int, 0, 10)
+		for s := range ExecutePipeline(in, done, stages...) {
+			result = append(result, s.(int))
+		}
+		wg.Wait()
+
+		require.Len(t, result, 2)
+	})
+}
+
 func TestAllStageStop(t *testing.T) {
 	wg := sync.WaitGroup{}
 	// Stage generator
