@@ -1,23 +1,24 @@
 package main
 
 import (
-	"errors"
 	"flag"
+	"fmt"
+	"strings"
 )
 
 var (
 	from, to      string
 	limit, offset int64
+	totalSteps    = 50
 )
 
-type InputParamsError struct {
-	Params string
-	Value  string
-	err    error
+type Bar struct {
+	cur   int64
+	total int64
 }
 
-func (e *InputParamsError) Error() string {
-	return e.Params + ": " + e.Value + "-" + e.err.Error()
+func (bar *Bar) getPercent() int64 {
+	return int64(float32(bar.cur) / float32(bar.total) * 100)
 }
 
 func init() {
@@ -29,19 +30,24 @@ func init() {
 
 func main() {
 	flag.Parse()
+	Progress = make(chan Bar)
 
-	err := copeFile("", "", limit, offset)
+	go func() {
+		for {
+			val, ok := <-Progress
+			if !ok {
+				break
+			}
+			filled := int(val.getPercent() / 2)
+			bar := "[" + strings.Repeat("#", filled) + strings.Repeat("-", totalSteps-filled) + "]"
+			fmt.Printf("\r%d / %d %s %3d%%", val.cur, val.total, bar, val.getPercent())
+		}
+	}()
+
+	err := Copy(from, to, offset, limit)
 	if err != nil {
-		println(err.Error())
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("")
 	}
-}
-
-func copeFile(from, to string, limit, offset int64) (err error) {
-	if from == "" {
-		return &InputParamsError{Params: "from", Value: from, err: errors.New("Empty param")}
-	}
-	if to == "" {
-		return &InputParamsError{Params: "to", Value: from, err: errors.New("Empty param")}
-	}
-	return
 }
