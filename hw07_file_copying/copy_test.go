@@ -173,6 +173,5 @@ func TestCopyProgress(t *testing.T) {
 		_ = Copy(filePathIn, filePathOut, offset, limit)
 		wg.Wait()
 		require.Equal(t, "\r617 / 617 [##################################################] 100%", progressStr)
-
 	})
 }
