@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -140,5 +143,36 @@ func TestCopyException(t *testing.T) {
 
 		err = Copy(filePathIn, filePathOut, offset, limit)
 		require.Equal(t, err, ErrOffsetExceedsFileSize)
+	})
+}
+
+func TestCopyProgress(t *testing.T) {
+	t.Run("Copy Progress case", func(t *testing.T) {
+		filePathOut := filepath.Join(t.TempDir(), "output.txt")
+		filePathIn := filepath.Join("testdata", "input.txt")
+
+		var limit, offset int64 = 1000, 6000
+
+		Progress = make(chan Bar)
+		progressStr := ""
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				val, ok := <-Progress
+				if !ok {
+					break
+				}
+				filled := int(val.getPercent() / 2)
+				bar := "[" + strings.Repeat("#", filled) + strings.Repeat("-", totalSteps-filled) + "]"
+				progressStr = fmt.Sprintf("\r%d / %d %s %3d%%", val.cur, val.total, bar, val.getPercent())
+			}
+		}()
+
+		_ = Copy(filePathIn, filePathOut, offset, limit)
+		wg.Wait()
+		require.Equal(t, "\r617 / 617 [##################################################] 100%", progressStr)
+
 	})
 }
