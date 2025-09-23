@@ -66,8 +66,8 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	buffer = make([]byte, bufferSize)
-	totalCopy := fileSize
-	if limit > 0 {
+	totalCopy := fileSize - offset
+	if limit > 0 && limit < totalCopy {
 		totalCopy = limit
 	}
 	for {
