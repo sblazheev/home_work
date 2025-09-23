@@ -66,6 +66,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	buffer = make([]byte, bufferSize)
+	totalCopy := fileSize
+	if limit > 0 {
+		totalCopy = limit
+	}
 	for {
 		if limit > 0 && allRead+bufferSize >= limit {
 			bufferSize = limit - allRead
@@ -74,7 +78,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		read, err := fr.ReadAt(buffer, offset)
 		offset += int64(read)
 		allRead += int64(read)
-
 		if read > 0 {
 			_, err = fw.Write(buffer[0:read])
 		}
@@ -82,7 +85,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		if Progress != nil {
 			Progress <- Bar{
 				cur:   allRead,
-				total: fileSize,
+				total: totalCopy,
 			}
 		}
 
