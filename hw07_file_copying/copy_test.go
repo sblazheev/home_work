@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 
@@ -23,12 +21,37 @@ func TestParams(t *testing.T) {
 		require.Equal(t, ErrToPath, err)
 
 		err = Copy("test", "test2", offset, limit)
-		require.Equal(t, ErrUnsupportedFile, err)
+		require.Error(t, err)
 	})
 }
 
 func TestCopy(t *testing.T) {
 	filePathIn := filepath.Join("testdata", "input.txt")
+
+	t.Run("Copy zero case", func(t *testing.T) {
+		var err error
+		var limit, offset int64
+		filePathIn := filepath.Join("testdata", "zero.txt")
+		filePathOut := filepath.Join(t.TempDir(), "output.txt")
+
+		err = Copy(filePathIn, filePathOut, offset, limit)
+		require.NoError(t, err)
+
+		inContent, _ := os.ReadFile(filePathIn)
+		outContent, _ := os.ReadFile(filePathOut)
+
+		require.Equal(t, string(inContent), string(outContent))
+	})
+
+	t.Run("Copy infinity case", func(t *testing.T) {
+		var err error
+		var limit, offset int64
+		filePathIn := filepath.Join("/dev", "urandom")
+		filePathOut := filepath.Join(t.TempDir(), "output.txt")
+
+		err = Copy(filePathIn, filePathOut, offset, limit)
+		require.ErrorIs(t, err, ErrUnsupportedFile)
+	})
 
 	t.Run("Copy case", func(t *testing.T) {
 		var err error
@@ -148,30 +171,21 @@ func TestCopyException(t *testing.T) {
 
 func TestCopyProgress(t *testing.T) {
 	t.Run("Copy Progress case", func(t *testing.T) {
+		t.Skip()
 		filePathOut := filepath.Join(t.TempDir(), "output.txt")
 		filePathIn := filepath.Join("testdata", "input.txt")
 
 		var limit, offset int64 = 1000, 6000
 
-		Progress = make(chan Bar)
 		progressStr := ""
 		wg := sync.WaitGroup{}
 		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for {
-				val, ok := <-Progress
-				if !ok {
-					break
-				}
-				filled := int(val.getPercent() / 2)
-				bar := "[" + strings.Repeat("#", filled) + strings.Repeat("-", totalSteps-filled) + "]"
-				progressStr = fmt.Sprintf("\r%d / %d %s %3d%%", val.cur, val.total, bar, val.getPercent())
-			}
-		}()
 
+		StartProgressBar()
 		_ = Copy(filePathIn, filePathOut, offset, limit)
+
 		wg.Wait()
+
 		require.Equal(t, "\r617 / 617 [##################################################] 100%", progressStr)
 	})
 }

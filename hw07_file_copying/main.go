@@ -3,23 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
 )
 
 var (
 	from, to      string
 	limit, offset int64
-	totalSteps    = 50
 )
-
-type Bar struct {
-	cur   int64
-	total int64
-}
-
-func (bar *Bar) getPercent() int64 {
-	return int64(float32(bar.cur) / float32(bar.total) * 100)
-}
 
 func init() {
 	flag.StringVar(&from, "from", "", "file to read from")
@@ -30,19 +19,8 @@ func init() {
 
 func main() {
 	flag.Parse()
-	Progress = make(chan Bar)
 
-	go func() {
-		for {
-			val, ok := <-Progress
-			if !ok {
-				break
-			}
-			filled := int(val.getPercent() / 2)
-			bar := "[" + strings.Repeat("#", filled) + strings.Repeat("-", totalSteps-filled) + "]"
-			fmt.Printf("\r%d / %d %s %3d%%", val.cur, val.total, bar, val.getPercent())
-		}
-	}()
+	StartProgressBar()
 
 	err := Copy(from, to, offset, limit)
 	if err != nil {
