@@ -85,15 +85,18 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return err
 	}
 
-	fileSize := fInfo.Size()
+	if !fInfo.Mode().IsRegular() {
+		return ErrUnsupportedFile
+	}
 
+	fileSize := fInfo.Size()
 	if err == nil && offset > fileSize {
 		return ErrOffsetExceedsFileSize
 	}
 
 	fw, err := os.Create(toPath)
 	if err != nil {
-		return ErrUnsupportedFile
+		return err
 	}
 	defer func() {
 		fw.Close()
@@ -128,10 +131,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 			buffer = make([]byte, bufferSize)
 		}
 		read, err := fr.ReadAt(buffer, offset)
-
-		if totalCopy == 0 && read > 0 {
-			return ErrUnsupportedFile
-		}
 
 		offset += int64(read)
 		allRead += int64(read)
