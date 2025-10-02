@@ -11,7 +11,6 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 	args := make([]string, 0, (len(cmd) - 1))
 	envAr := make([]string, 0, len(env))
 	for key, val := range env {
-		val.Value = strings.ReplaceAll(val.Value, "\n", "\\n")
 		envAr = append(envAr, key+"="+val.Value)
 	}
 	command := cmd[0]
