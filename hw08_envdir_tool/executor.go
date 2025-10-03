@@ -18,6 +18,7 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 		args = cmd[1:]
 	}
 	execCmd := exec.Command(command, args...)
+	execCmd.Stdin = os.Stdin
 	execCmd.Stdout = os.Stdout
 	execCmd.Stderr = os.Stderr
 	execCmd.Env = envAr
