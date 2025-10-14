@@ -16,26 +16,23 @@ type ValidationError struct {
 }
 
 var (
-	ErrNoStruct = errors.New("no struct")
-	ErrNoParts  = errors.New("no name and value in tag")
-
-	ErrValidationRule              = errors.New("format rules")
-	ErrValidationStringLength      = errors.New("string length")
-	ErrValidationRegExpNotMatch    = errors.New("regexp not match")
-	ErrValidationNotIncludesString = errors.New("string not includes in list")
-	ErrValidationIntNotMin         = errors.New("less min")
-	ErrValidationIntNotMax         = errors.New("more max")
-	ErrValidationNotIncludes       = errors.New("val not includes in list")
+	ErrNoStruct                 = errors.New("no struct")
+	ErrValidationRule           = errors.New("format rules")
+	ErrValidationStringLength   = errors.New("string length")
+	ErrValidationRegExpNotMatch = errors.New("regexp not match")
+	ErrValidationIntNotMin      = errors.New("less min")
+	ErrValidationIntNotMax      = errors.New("more max")
+	ErrValidationNotIncludes    = errors.New("val not includes in list")
 )
 
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
-	errors := make([]string, 0, len(v))
+	vErrors := make([]string, 0, len(v))
 	for _, vError := range v {
-		errors = append(errors, fmt.Sprintf("%s '%s'\n", vError.Field, vError.Err))
+		vErrors = append(vErrors, fmt.Sprintf("%s '%s'\n", vError.Field, vError.Err))
 	}
-	return strings.Join(errors, "")
+	return strings.Join(vErrors, "")
 }
 
 func Validate(v interface{}) error {
