@@ -16,7 +16,11 @@ type (
 		Enable bool
 		Index  string `validate:"len:6|regexp:^\\d+$"`
 	}
-
+	MetaErRules struct {
+		Update string `validate:"len19"`
+		Enable bool
+		Index  string `validate:"len:6|regexp:^\\d+$"`
+	}
 	User struct {
 		ID     string `json:"id" validate:"len:36"`
 		Name   string
@@ -36,6 +40,16 @@ type (
 		Phones []string `validate:"len:11"`
 		Meta   Meta     `validate:"nested"`
 		app    App      `validate:"nested"`
+	}
+
+	UserErRules struct {
+		ID     string `json:"id" validate:"len:36"`
+		Name   string
+		Age    int         `validate:"min:|max:50"`
+		Email  string      `validate:"regexp:^\\w+@\\w+\\.\\w+$"`
+		Role   UserRole    `validate:"in:admin,stuff"`
+		Phones []string    `validate:"len11"`
+		Meta   MetaErRules `validate:"nested"`
 	}
 
 	App struct {
@@ -58,6 +72,39 @@ var tests = []struct {
 	in          interface{}
 	expectedErr error
 }{
+	{
+		in: UserErRules{
+			ID:     "4e33a976-b726-4377-a8f3-5ac93e190bfd",
+			Name:   "Name",
+			Age:    30,
+			Email:  "test@test.ru",
+			Role:   "admin",
+			Phones: []string{"74951234567"},
+			Meta: MetaErRules{
+				Update: "2025-10-10 10:10:59",
+				Index:  "111111",
+			},
+		},
+		expectedErr: ValidatorErrors{
+			ValidatorError{
+				Field: "Age",
+				Err:   ErrFormatRule,
+			},
+			ValidatorError{
+				Field: "Phones",
+				Err:   ErrFormatRule,
+			},
+			ValidatorError{
+				Field: "Meta",
+				Err: ValidatorErrors{
+					ValidatorError{
+						Field: "Update",
+						Err:   ErrFormatRule,
+					},
+				},
+			},
+		},
+	},
 	{
 		in: User{
 			ID:     "111",
