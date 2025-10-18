@@ -1,0 +1,16 @@
+goos: linux
+goarch: amd64
+pkg: github.com/sblazheev/home_work/hw10_program_optimization
+cpu: Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz
+BenchmarkGetDomainStat-4   	       4	 380997333 ns/op	23861958 B/op	  745358 allocs/op
+BenchmarkGetDomainStat-4   	       4	 358832604 ns/op	23861806 B/op	  745356 allocs/op
+BenchmarkGetDomainStat-4   	       4	 356407097 ns/op	23861886 B/op	  745357 allocs/op
+BenchmarkGetDomainStat-4   	       4	 325348032 ns/op	23861746 B/op	  745356 allocs/op
+BenchmarkGetDomainStat-4   	       4	 349338996 ns/op	23872898 B/op	  745357 allocs/op
+BenchmarkGetDomainStat-4   	       3	 352303172 ns/op	23865504 B/op	  745356 allocs/op
+BenchmarkGetDomainStat-4   	       4	 336531522 ns/op	23861782 B/op	  745356 allocs/op
+BenchmarkGetDomainStat-4   	       4	 334632256 ns/op	23861814 B/op	  745356 allocs/op
+BenchmarkGetDomainStat-4   	       4	 346697902 ns/op	23850638 B/op	  745355 allocs/op
+BenchmarkGetDomainStat-4   	       4	 323289835 ns/op	23872914 B/op	  745357 allocs/op
+PASS
+ok  	github.com/sblazheev/home_work/hw10_program_optimization	28.077s
