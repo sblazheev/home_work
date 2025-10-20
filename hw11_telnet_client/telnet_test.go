@@ -64,7 +64,6 @@ func TestTelnetClient(t *testing.T) {
 	})
 
 	t.Run("not connect", func(t *testing.T) {
-
 		var wg sync.WaitGroup
 		wg.Add(1)
 
