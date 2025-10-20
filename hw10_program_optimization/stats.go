@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 )
 
@@ -20,16 +21,20 @@ type User struct {
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r, domain)
+	re, err := regexp.Compile("\\." + domain + "$")
+	if err != nil {
+		return nil, err
+	}
+	u, err := getUsers(r, re)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
-	return countDomains(u, domain)
+	return countDomains(u, re)
 }
 
 type users []*User
 
-func getUsers(r io.Reader, domain string) (result users, err error) {
+func getUsers(r io.Reader, re *regexp.Regexp) (result users, err error) {
 	if err != nil {
 		return
 	}
@@ -41,7 +46,9 @@ func getUsers(r io.Reader, domain string) (result users, err error) {
 		if err = unmarshal(&bytes, &user); err != nil {
 			return
 		}
-		if strings.Contains(user.Email, domain) {
+		matched := re.Match([]byte(user.Email))
+
+		if matched {
 			result = append(result, &user)
 		}
 	}
@@ -52,11 +59,13 @@ func unmarshal(data *[]byte, user *User) error {
 	return user.UnmarshalJSON(*data)
 }
 
-func countDomains(u users, domain string) (DomainStat, error) {
+func countDomains(u users, re *regexp.Regexp) (DomainStat, error) {
 	result := make(DomainStat)
 	for _, pUser := range u {
 		user := *pUser
-		if strings.Contains(user.Email, domain) {
+		matched := re.Match([]byte(user.Email))
+
+		if matched {
 			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
 			num++
 			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
