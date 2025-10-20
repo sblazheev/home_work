@@ -93,10 +93,9 @@ func RunTelnetClient(tc MyTelnetClient) error {
 	os.Stderr.Write([]byte("...Connected to " + tc.GetAddress() + "\n"))
 
 	osSignal := make(chan os.Signal, 1)
-	signal.Notify(osSignal, syscall.SIGINT, syscall.SIGQUIT)
+	signal.Notify(osSignal, syscall.SIGINT)
 	errorConnect := make(chan error, 1)
 
-	// Send
 	go func() {
 		if err := tc.Send(); err != nil {
 			errorConnect <- err
@@ -107,7 +106,6 @@ func RunTelnetClient(tc MyTelnetClient) error {
 		}
 	}()
 
-	// Receive
 	go func() {
 		if err := tc.Receive(); err != nil {
 			errorConnect <- err

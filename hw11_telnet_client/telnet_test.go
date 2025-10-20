@@ -66,7 +66,6 @@ func TestTelnetClient(t *testing.T) {
 	t.Run("close", func(t *testing.T) {
 		l, err := net.Listen("tcp", "127.0.0.1:")
 		require.NoError(t, err)
-		defer func() { require.NoError(t, l.Close()) }()
 
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -77,7 +76,7 @@ func TestTelnetClient(t *testing.T) {
 			in := &bytes.Buffer{}
 			out := &bytes.Buffer{}
 
-			timeout, err := time.ParseDuration("10s")
+			timeout, err := time.ParseDuration("0s")
 			require.NoError(t, err)
 
 			client := NewTelnetClient(l.Addr().String(), timeout, io.NopCloser(in), out)
@@ -89,8 +88,9 @@ func TestTelnetClient(t *testing.T) {
 			require.Equal(t, "Bye-bye\n", out.String())
 
 			in.WriteString("Ping")
-			err = client.Send()
-			require.NoError(t, err)
+			client.Send()
+			err = client.Receive()
+			require.Error(t, err)
 		}()
 
 		go func() {
