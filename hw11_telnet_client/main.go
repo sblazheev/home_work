@@ -31,7 +31,7 @@ func main() {
 
 	client := NewTelnetClient(net.JoinHostPort(address, port), timeout, os.Stdin, os.Stdout)
 
-	if err := RunTelnetClient(client); err != nil {
+	if err := RunTelnetClient(*client.(*MyTelnetClient)); err != nil {
 		log.Fatal(err)
 		return
 	}

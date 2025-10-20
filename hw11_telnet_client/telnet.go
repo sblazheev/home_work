@@ -75,8 +75,8 @@ func (c *MyTelnetClient) Send() error {
 	return err
 }
 
-func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) MyTelnetClient {
-	return MyTelnetClient{
+func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
+	return &MyTelnetClient{
 		address: address,
 		timeout: timeout,
 		in:      in,
