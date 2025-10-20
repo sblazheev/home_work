@@ -89,6 +89,7 @@ func TestTelnetClient(t *testing.T) {
 
 			in.WriteString("Ping")
 			client.Send()
+			time.Sleep(time.Second * 5)
 			err = client.Receive()
 			require.Error(t, err)
 		}()
