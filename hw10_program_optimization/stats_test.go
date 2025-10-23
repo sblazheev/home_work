@@ -1,9 +1,11 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
 
 import (
 	"bytes"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,5 +37,16 @@ func TestGetDomainStat(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("json error", func(t *testing.T) {
+		_, err := GetDomainStat(bytes.NewBufferString("{id:1}"), "unknown")
+		require.Error(t, err)
+	})
+
+	t.Run("matched domain", func(t *testing.T) {
+		re, _ := regexp.Compile("\\.com$")
+		matched := re.Match([]byte("slava.com@ya.ru"))
+		require.Equal(t, false, matched)
 	})
 }

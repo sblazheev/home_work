@@ -5,6 +5,8 @@ package hw10programoptimization
 
 import (
 	"archive/zip"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +17,8 @@ const (
 	mb          uint64 = 1 << 20
 	memoryLimit uint64 = 30 * mb
 
-	timeLimit = 300 * time.Millisecond
+	timeLimit          = 300 * time.Millisecond
+	timeLimitUnmarshal = 80 * time.Millisecond
 )
 
 // go test -v -count=1 -timeout=30s -tags bench .
@@ -47,6 +50,48 @@ func TestGetDomainStat_Time_And_Memory(t *testing.T) {
 	t.Logf("memory used: %dMb / %dMb", mem/mb, memoryLimit/mb)
 
 	require.Less(t, int64(result.T), int64(timeLimit), "the program is too slow")
+	require.Less(t, mem, memoryLimit, "the program is too greedy")
+}
+
+func TestUnmarshal_Time_And_Memory(t *testing.T) {
+	bench := func(b *testing.B) {
+		b.Helper()
+		b.StopTimer()
+
+		r, err := zip.OpenReader("testdata/users.dat.zip")
+		require.NoError(t, err)
+		defer r.Close()
+
+		require.Equal(t, 1, len(r.File))
+
+		data, err := r.File[0].Open()
+		require.NoError(t, err)
+
+		content, err := io.ReadAll(data)
+		if err != nil {
+			return
+		}
+
+		lines := strings.Split(string(content), "\n")
+
+		b.StartTimer()
+		{
+			for _, line := range lines {
+				data := []byte(line)
+				_ = unmarshal(&data, &User{})
+			}
+		}
+
+		b.StopTimer()
+		require.NoError(t, err)
+	}
+
+	result := testing.Benchmark(bench)
+	mem := result.MemBytes
+	t.Logf("time used: %s / %s", result.T, timeLimitUnmarshal)
+	t.Logf("memory used: %dMb / %dMb", mem/mb, memoryLimit/mb)
+
+	require.Less(t, int64(result.T), int64(timeLimitUnmarshal), "the program is too slow")
 	require.Less(t, mem, memoryLimit, "the program is too greedy")
 }
 
