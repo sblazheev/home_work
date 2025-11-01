@@ -1,10 +1,13 @@
 package app
 
 import (
-	"context"
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage"        //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
 )
 
-type App struct { // TODO
+type App struct {
+	logger  common.LoggerInterface
+	storage storage.Storage
 }
 
 type Logger interface { // TODO
@@ -13,14 +16,14 @@ type Logger interface { // TODO
 type Storage interface { // TODO
 }
 
-func New(logger Logger, storage Storage) *App {
-	return &App{}
+func New(logger common.LoggerInterface, storage *storage.Storage) *App {
+	return &App{
+		logger:  logger,
+		storage: *storage,
+	}
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-	// TODO
-	return nil
-	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+func (a *App) CreateEvent(id, title string) error {
+	_, err := a.storage.Add(common.Event{ID: id, Title: title})
+	return err
 }
-
-// TODO
