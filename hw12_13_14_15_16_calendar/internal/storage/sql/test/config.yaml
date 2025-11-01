@@ -3,7 +3,7 @@ app:
 logger:
   level : info
 storage:
-  type: sql
+  type: memory
   dsn: "postgres://postgres:postgres@postgres:5432/calendar"
 server:
   host: 0.0.0.0
