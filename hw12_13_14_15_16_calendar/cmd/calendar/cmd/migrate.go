@@ -27,7 +27,8 @@ var migrateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		log := logger.New(cfg.Logger.Level)
-		storageDriver, err := storage.NewStorageDriver(context.Background(), cfg.Storage)
+		ctx := context.Background()
+		storageDriver, err := storage.NewStorageDriver(&ctx, cfg.Storage)
 		if err != nil {
 			log.Error("init storage driver", "error", err)
 			os.Exit(1)

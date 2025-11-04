@@ -11,13 +11,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"                      //nolint:depguard
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"                   //nolint:depguard
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/logger"                   //nolint:depguard
 	internalhttp "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/http" //nolint:depguard
-	storage "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage"          //nolint:depguard
 	"github.com/spf13/cobra"                                                                  //nolint:depguard
 )
 
@@ -39,33 +37,20 @@ var serveCmd = &cobra.Command{
 			syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		defer cancel()
 
-		storageDriver, err := storage.NewStorageDriver(ctx, cfg.Storage)
+		app, err := app.New(*cfg, logg, &ctx)
 		if err != nil {
-			logg.Error("error init storage driver", "error", err)
+			logg.Error("create app", "error", err)
 			os.Exit(1)
 		}
-
-		storage, err := storage.New(ctx, storageDriver)
-		if err != nil {
-			logg.Error("error init storage", "error", err)
-			os.Exit(1)
-		}
-
-		app := app.New(logg, storage)
 
 		server := internalhttp.NewServer(*app, cfg.Server, logg)
 
 		go func() {
 			<-ctx.Done()
 			logg.Info("Stoping HTTP server")
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-			go func() {
-				<-ctx.Done()
-				defer cancel()
-				if err := server.Stop(ctx); err != nil {
-					logg.Error("failed stop http server", "error", err)
-				}
-			}()
+			if err := server.Stop(ctx); err != nil {
+				logg.Error("failed stop http server", "error", err)
+			}
 		}()
 
 		logg.Info("Start HTTP server", "address", server.Address, "config", configFile)

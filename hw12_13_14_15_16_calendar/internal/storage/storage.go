@@ -14,17 +14,17 @@ var ErrStorageUnknownType = fmt.Errorf("storage unknown type")
 
 type Storage struct {
 	s   common.StorageDriverInterface
-	ctx context.Context
+	ctx *context.Context
 }
 
-func New(ctx context.Context, s common.StorageDriverInterface) (*Storage, error) {
+func New(ctx *context.Context, s common.StorageDriverInterface) (*Storage, error) {
 	return &Storage{
 		s:   s,
 		ctx: ctx,
 	}, nil
 }
 
-func NewStorageDriver(ctx context.Context, c config.StorageConfig) (common.StorageDriverInterface, error) {
+func NewStorageDriver(ctx *context.Context, c config.StorageConfig) (common.StorageDriverInterface, error) {
 	switch c.Type {
 	case "memory":
 		return memorystorage.New(), nil
@@ -52,9 +52,4 @@ func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 
 func (s *Storage) List() ([]common.Event, error) {
 	return s.s.List()
-}
-
-func isOverlapping(e1, e2 common.Event) bool { //nolint:unused
-	_, _ = e1, e2
-	return false
 }

@@ -11,7 +11,8 @@ import (
 func TestStorage(t *testing.T) {
 	t.Run("Storage create", func(t *testing.T) {
 		s := memorystorage.New()
-		_, err := New(context.Background(), s)
+		ctx := context.Background()
+		_, err := New(&ctx, s)
 		require.NoError(t, err)
 	})
 }

@@ -18,12 +18,12 @@ type Storage struct {
 	db  *sqlx.DB
 	c   config.StorageConfig
 	err error
-	ctx context.Context
+	ctx *context.Context
 }
 
-func New(ctx context.Context, c config.StorageConfig) common.StorageDriverInterface {
+func New(ctx *context.Context, c config.StorageConfig) common.StorageDriverInterface {
 	s := &Storage{c: c, ctx: ctx}
-	s.err = s.Connect(ctx)
+	s.err = s.Connect(*ctx)
 	return s
 }
 
@@ -47,7 +47,7 @@ func (s *Storage) Add(event common.Event) (common.Event, error) {
 	}
 	sql := `INSERT INTO events("id","title","date_time","duration","description","user","notify_time") 
 VALUES(:id, :title, :date_time, :duration, :description, :user, :notify_time)`
-	_, err := s.db.NamedExecContext(s.ctx, sql, event)
+	_, err := s.db.NamedExecContext(*s.ctx, sql, event)
 	if err != nil {
 		return event, err
 	}
@@ -58,7 +58,7 @@ func (s *Storage) Update(event common.Event) error {
 	sql := `UPDATE events SET "title" = :title,"date_time" = :date_time,"duration" = :duration,
                   "description" = :description,"user" = :user,
                   "notify_time" = :notify_time WHERE id = :id`
-	_, err := s.db.NamedExecContext(s.ctx, sql, event)
+	_, err := s.db.NamedExecContext(*s.ctx, sql, event)
 	if err != nil {
 		return err
 	}
@@ -67,14 +67,14 @@ func (s *Storage) Update(event common.Event) error {
 
 func (s *Storage) Delete(id interface{}) error {
 	sql := `DELETE FROM events WHERE id = $1`
-	_, err := s.db.ExecContext(s.ctx, sql, id)
+	_, err := s.db.ExecContext(*s.ctx, sql, id)
 	return err
 }
 
 func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 	event := common.Event{}
 	sql := `SELECT "id","title","date_time","duration","description","user","notify_time" FROM events WHERE id = $1`
-	err := s.db.GetContext(s.ctx, &event, sql, id)
+	err := s.db.GetContext(*s.ctx, &event, sql, id)
 	if err != nil && err.Error() == "sql: no rows in result set" {
 		return event, common.ErrEventNotFound
 	}
@@ -84,7 +84,7 @@ func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 func (s *Storage) List() ([]common.Event, error) {
 	event := make([]common.Event, 0)
 	sql := `SELECT "id","title","date_time","duration","description","user","notify_time" FROM events`
-	err := s.db.SelectContext(s.ctx, &event, sql)
+	err := s.db.SelectContext(*s.ctx, &event, sql)
 	if err != nil && err.Error() == "sql: no rows in result set" {
 		return event, common.ErrEventNotFound
 	}
@@ -101,14 +101,14 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 		log.Info("Migration item", "type", s.Type, "version", s.Version, "path", filepath.Base(s.Path))
 	}
 
-	stats, err := provider.Status(s.ctx)
+	stats, err := provider.Status(*s.ctx)
 	if err != nil {
 		log.Error("status", "error", err)
 	}
 	for _, s := range stats {
 		log.Info("Migrate status", "type", s.Source.Type, "version", s.Source.Version, "duration", s.State)
 	}
-	results, err := provider.Up(s.ctx)
+	results, err := provider.Up(*s.ctx)
 	if err != nil {
 		log.Error("up", "error", err)
 	}
