@@ -11,17 +11,11 @@ import (
 type App struct {
 	logger  common.LoggerInterface
 	storage *storage.Storage
-	cfg     config.Config
+	cfg     *config.Config
 	ctx     *context.Context
 }
 
-type Logger interface { // TODO
-}
-
-type Storage interface { // TODO
-}
-
-func New(cfg config.Config, logger common.LoggerInterface, ctx *context.Context) (*App, error) {
+func New(cfg *config.Config, logger common.LoggerInterface, ctx *context.Context) (*App, error) {
 	storageDriver, err := storage.NewStorageDriver(ctx, cfg.Storage)
 	if err != nil {
 		return nil, err

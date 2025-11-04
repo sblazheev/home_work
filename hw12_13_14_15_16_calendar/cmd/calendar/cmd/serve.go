@@ -26,18 +26,18 @@ var serveCmd = &cobra.Command{
 	Short: "Запуск веб сервера",
 	Long:  `Запуск веб сервера API календаря`,
 	Run: func(_ *cobra.Command, _ []string) {
+		ctx, cancel := signal.NotifyContext(context.Background(),
+			syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+		defer cancel()
+
 		cfg, err := config.New(configFile)
 		if err != nil {
 			fmt.Printf("error init config: %v\n", err)
 			os.Exit(1)
 		}
-		logg := logger.New(cfg.Logger.Level)
+		logg := logger.New(&cfg.Logger)
 
-		ctx, cancel := signal.NotifyContext(context.Background(),
-			syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-		defer cancel()
-
-		app, err := app.New(*cfg, logg, &ctx)
+		app, err := app.New(cfg, logg, &ctx)
 		if err != nil {
 			logg.Error("create app", "error", err)
 			os.Exit(1)

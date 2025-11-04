@@ -3,12 +3,15 @@ package logger
 import (
 	"log/slog"
 	"os"
+
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config" //nolint:depguard
 )
 
 type Level int
 
 type Logger struct {
 	log *slog.Logger
+	cfg *config.LogConfig
 }
 
 func (l *Logger) Debug(msg string, args ...interface{}) {
@@ -34,12 +37,12 @@ const (
 	LevelError Level = Level(slog.LevelError)
 )
 
-func New(level string) *Logger {
+func New(cfg *config.LogConfig) *Logger {
 	logConfig := &slog.HandlerOptions{
 		AddSource:   false,
 		ReplaceAttr: nil,
 	}
-	switch level {
+	switch cfg.Level {
 	case "info":
 		logConfig.Level = slog.LevelInfo
 	case "warn":
@@ -55,5 +58,5 @@ func New(level string) *Logger {
 
 	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
-	return &Logger{log: logger}
+	return &Logger{log: logger, cfg: cfg}
 }

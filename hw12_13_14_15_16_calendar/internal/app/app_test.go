@@ -13,11 +13,11 @@ func TestLogger(t *testing.T) {
 	t.Run("App create", func(t *testing.T) {
 		c, err := config.New("./test/config.yaml")
 		require.NoError(t, err)
-		logg := logger.New(c.Logger.Level)
+		logg := logger.New(&c.Logger)
 
 		ctx := context.Background()
 
-		_, err = New(*c, logg, &ctx)
+		_, err = New(c, logg, &ctx)
 		require.NoError(t, err)
 	})
 }
