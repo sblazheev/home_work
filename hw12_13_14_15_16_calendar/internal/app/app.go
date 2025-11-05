@@ -38,7 +38,22 @@ func (a *App) isOverlapping(e1, e2 common.Event) bool { //nolint:unused
 	return e1.DateTime.Before(e2.DateTime.Add(e2.Duration)) && e2.DateTime.Before(e1.DateTime.Add(e2.Duration))
 }
 
-func (a *App) CreateEvent(id, title string) error {
-	_, err := a.storage.Add(common.Event{ID: id, Title: title})
-	return err
+func (a *App) CreateEvent(event common.Event) (common.Event, error) {
+	return a.storage.Add(event)
+}
+
+func (a *App) UpdateEvent(event common.Event) error {
+	return a.storage.Update(event)
+}
+
+func (a *App) DeleteEvent(id interface{}) error {
+	return a.storage.Delete(id)
+}
+
+func (a *App) GetEvent(id interface{}) (common.Event, error) {
+	return a.storage.GetByID(id)
+}
+
+func (a *App) ListEvent() ([]common.Event, error) {
+	return a.storage.List()
 }

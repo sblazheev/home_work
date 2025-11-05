@@ -19,7 +19,7 @@ func TestSqlStorage(t *testing.T) {
 	c, err := config.New("./test/config.yaml")
 	require.NoError(t, err)
 	ctx := context.Background()
-	s := New(ctx, c.Storage)
+	s := New(&ctx, c.Storage)
 
 	tx, _ := s.(*Storage).db.BeginTx(ctx, nil)
 	t.Run("Add event", func(t *testing.T) {
