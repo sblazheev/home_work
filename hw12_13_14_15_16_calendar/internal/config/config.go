@@ -19,7 +19,8 @@ var (
 type Config struct {
 	Logger  LogConfig
 	Storage StorageConfig
-	Server  ServerConfig
+	HTTP    HTTPConfig
+	Grpc    GrpcConfig
 }
 
 type LogConfig struct {
@@ -31,7 +32,12 @@ type StorageConfig struct {
 	Dsn  string `config:"dsn"`
 }
 
-type ServerConfig struct {
+type HTTPConfig struct {
+	Host string `config:"host"`
+	Port string `config:"port"`
+}
+
+type GrpcConfig struct {
 	Host string `config:"host"`
 	Port string `config:"port"`
 }
@@ -43,7 +49,8 @@ func New(configPath string) (*Config, error) {
 			Level: "info",
 		},
 		Storage: StorageConfig{},
-		Server:  ServerConfig{},
+		HTTP:    HTTPConfig{},
+		Grpc:    GrpcConfig{},
 	}
 	loader := confita.NewLoader(
 		file.NewBackend(configPath),

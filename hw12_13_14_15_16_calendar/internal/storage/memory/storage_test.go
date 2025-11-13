@@ -9,7 +9,7 @@ import (
 )
 
 func TestMemoryStorage(t *testing.T) {
-	event := common.NewEvent("", "Test", time.Now(), time.Second*15, "Test", 0, 0)
+	event := common.NewEvent("", "Test", time.Now(), 15, "Test", 0, 0)
 
 	t.Run("Storage create", func(t *testing.T) {
 		s := New()

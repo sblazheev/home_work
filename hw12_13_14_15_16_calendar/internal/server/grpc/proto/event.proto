@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package CalendarService;
+option go_package = "./;pb";
+
+service EventsService {
+  rpc CreateEvent (Event) returns (Event) {}
+  rpc UpdateEvent (Event) returns (Event) {}
+  rpc GetEvent (ID) returns (Event) {}
+  rpc DeleteEvent (ID) returns (Response) {}
+  rpc ListEvent (EmptyRequest) returns (Events) {}
+}
+message EmptyRequest {}
+
+message ID {
+  string UUID = 1;
+}
+
+message Event {
+  string ID = 1;
+  string Title = 2;
+  string Description = 3;
+  uint64 DateTime = 4;
+  uint64 Duration = 5;
+  string UserID = 6;
+  uint64 NotifyTime = 7;
+}
+
+message Events {
+  repeated Event events = 1;
+}
+
+message Response {
+  uint32 Status = 1;
+}

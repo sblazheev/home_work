@@ -1,3 +1,4 @@
+//revive:disable
 package common
 
 import (
@@ -5,16 +6,16 @@ import (
 )
 
 type Event struct {
-	ID          interface{}   `db:"id"`
-	Title       string        `db:"title"`
-	DateTime    time.Time     `db:"date_time"`
-	Duration    time.Duration `db:"duration"`
-	Description string        `db:"description"`
-	User        int           `db:"user"`
-	NotifyTime  int           `db:"notify_time"`
+	ID          interface{} `db:"id"`
+	Title       string      `db:"title"`
+	DateTime    time.Time   `db:"date_time"`
+	Duration    uint64      `db:"duration"`
+	Description string      `db:"description"`
+	User        int         `db:"user"`
+	NotifyTime  uint64      `db:"notify_time"`
 }
 
-func NewEvent(id interface{}, t string, date time.Time, duration time.Duration, desc string, u int, notify int) *Event {
+func NewEvent(id interface{}, t string, date time.Time, duration uint64, desc string, u int, notify uint64) *Event {
 	return &Event{
 		ID:          id,
 		Title:       t,

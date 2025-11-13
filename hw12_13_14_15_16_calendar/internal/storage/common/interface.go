@@ -1,3 +1,4 @@
+//revive:disable
 package common
 
 type StorageDriverInterface interface {

@@ -43,7 +43,7 @@ var serveCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		server := internalhttp.NewServer(*app, cfg.Server, logg)
+		server := internalhttp.NewServer(*app, cfg.HTTP, logg)
 
 		go func() {
 			<-ctx.Done()
