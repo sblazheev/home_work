@@ -36,7 +36,11 @@ lint: install-lint-deps
 
 migrate: build
 	$(BIN) migrate --config "./configs/config.yaml"
-swag:
+
+install-swag-deps:
+	(which swag > /dev/null) || go install github.com/swaggo/swag/cmd/swag@latest
+
+swag: install-swag-deps
 	swag i -d internal/server/http/,internal/app/ -o internal/server/http/docs/ -g server.go
 
 generate:
