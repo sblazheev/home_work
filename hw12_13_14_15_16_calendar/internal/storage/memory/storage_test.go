@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
-	"github.com/stretchr/testify/require"                                           //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
+	"github.com/stretchr/testify/require"                                   //nolint:depguard
 )
 
 func TestMemoryStorage(t *testing.T) {

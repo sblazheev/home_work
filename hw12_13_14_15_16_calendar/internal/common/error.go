@@ -9,4 +9,5 @@ var (
 	ErrEventInvalidEvent    = fmt.Errorf("invalid event data")
 	ErrEventAlreadyExists   = fmt.Errorf("event already exists")
 	ErrEventConflictOverlap = fmt.Errorf("event overlaps with another event")
+	ErrStorageUnknownType   = fmt.Errorf("storage unknown type")
 )

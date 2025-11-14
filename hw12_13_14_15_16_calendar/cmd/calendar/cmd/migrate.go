@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"  //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/logger"  //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage" //nolint:depguard
-	"github.com/spf13/cobra"                                                 //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"    //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config" //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/logger" //nolint:depguard
+	"github.com/spf13/cobra"                                                //nolint:depguard
 )
 
 var configFileMigrate string
@@ -28,7 +28,7 @@ var migrateCmd = &cobra.Command{
 		}
 		log := logger.New(&cfg.Logger)
 		ctx := context.Background()
-		storageDriver, err := storage.NewStorageDriver(&ctx, cfg.Storage)
+		storageDriver, err := app.NewStorageDriver(&ctx, cfg.Storage)
 		if err != nil {
 			log.Error("init storage driver", "error", err)
 			os.Exit(1)

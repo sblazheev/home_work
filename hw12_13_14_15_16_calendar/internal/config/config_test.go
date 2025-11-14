@@ -10,6 +10,9 @@ func TestConfig(t *testing.T) {
 	t.Run("Config create", func(t *testing.T) {
 		config, err := New("./test/config.yaml")
 		require.Equal(t, &Config{
+			App: AppConfig{
+				Overlapping: true,
+			},
 			Logger: LogConfig{
 				Level: "info",
 			},

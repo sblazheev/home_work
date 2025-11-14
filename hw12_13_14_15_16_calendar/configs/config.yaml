@@ -1,5 +1,5 @@
 app:
-  date_overlapping: true
+  overlapping: false # разрешается перекрытие даты
 logger:
   level : debug # info / debug / warning / error
 storage:

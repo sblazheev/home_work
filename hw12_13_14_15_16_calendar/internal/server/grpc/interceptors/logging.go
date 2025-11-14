@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
-	"google.golang.org/grpc"                                                        //nolint:depguard
-	"google.golang.org/grpc/metadata"                                               //nolint:depguard
-	"google.golang.org/grpc/peer"                                                   //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
+	"google.golang.org/grpc"                                                //nolint:depguard
+	"google.golang.org/grpc/metadata"                                       //nolint:depguard
+	"google.golang.org/grpc/peer"                                           //nolint:depguard
 )
 
 func UnaryServerRequestLoggingInterceptor(logger common.LoggerInterface) grpc.UnaryServerInterceptor {

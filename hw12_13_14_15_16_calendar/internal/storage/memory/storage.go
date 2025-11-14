@@ -3,8 +3,8 @@ package memorystorage
 import (
 	"sync"
 
-	"github.com/google/uuid"                                                        //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
+	"github.com/google/uuid"                                                //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
 )
 
 type Storage struct {

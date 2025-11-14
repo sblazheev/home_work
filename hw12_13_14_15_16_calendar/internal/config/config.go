@@ -17,10 +17,15 @@ var (
 )
 
 type Config struct {
+	App     AppConfig
 	Logger  LogConfig
 	Storage StorageConfig
 	HTTP    HTTPConfig
 	Grpc    GrpcConfig
+}
+
+type AppConfig struct {
+	Overlapping bool `config:"overlapping"`
 }
 
 type LogConfig struct {
@@ -45,6 +50,9 @@ type GrpcConfig struct {
 func New(configPath string) (*Config, error) {
 	loggerLeverPosible := []string{"info", "warn", "debug", "error", ""}
 	cfg := Config{
+		App: AppConfig{
+			Overlapping: true,
+		},
 		Logger: LogConfig{
 			Level: "info",
 		},

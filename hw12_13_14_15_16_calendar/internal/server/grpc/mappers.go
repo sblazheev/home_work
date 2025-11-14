@@ -1,7 +1,7 @@
 package internalgrpc
 
 import (
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app/dto"
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common/dto"
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/grpc/pb"
 )
 

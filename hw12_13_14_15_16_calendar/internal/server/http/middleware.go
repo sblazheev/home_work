@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
 )
 
 func loggingMiddleware(next http.Handler, logger common.LoggerInterface) http.Handler {

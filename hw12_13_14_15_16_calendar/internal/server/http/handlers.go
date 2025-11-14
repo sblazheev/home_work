@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator/v10" //nolint:depguard
-	"github.com/google/uuid"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"            //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app/dto"        //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
-	httpSwagger "github.com/swaggo/http-swagger/v2"                                 //nolint:depguard
+	"github.com/go-playground/validator/v10"                                    //nolint:depguard
+	"github.com/google/uuid"                                                    //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"        //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"     //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common/dto" //nolint:depguard
+	httpSwagger "github.com/swaggo/http-swagger/v2"                             //nolint:depguard
 )
 
 type HTTPHandler struct {

@@ -41,7 +41,7 @@ install-swag-deps:
 	(which swag > /dev/null) || go install github.com/swaggo/swag/cmd/swag@latest
 
 swag: install-swag-deps
-	swag i -d internal/server/http/,internal/app/ -o internal/server/http/docs/ -g server.go
+	swag i -d internal/server/http/,internal/app/,internal/common/ -o internal/server/http/docs/ -g server.go
 
 generate:
 	rm -rf proto/pb

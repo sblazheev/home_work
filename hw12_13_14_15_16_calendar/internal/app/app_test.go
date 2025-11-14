@@ -7,11 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app/dto"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"         //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/logger"         //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
-	"github.com/stretchr/testify/require"                                           //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"     //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common/dto" //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"     //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/logger"     //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage"    //nolint:depguard
+	//nolint:depguard
+	"github.com/stretchr/testify/require" //nolint:depguard
 )
 
 func TestApp(t *testing.T) {
@@ -58,7 +60,7 @@ func TestApp(t *testing.T) {
 
 	t.Run("Update event", func(t *testing.T) {
 		event.User = 1
-		dtoEvent, err := common.MapperEventToDtoEvent(&event)
+		dtoEvent, err := storage.MapperEventToDtoEvent(&event)
 		require.NoError(t, err)
 		err = app.UpdateEvent(dtoEvent)
 		require.NoError(t, err)

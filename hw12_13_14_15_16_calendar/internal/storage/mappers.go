@@ -1,19 +1,20 @@
 //revive:disable
-package common
+package storage
 
 import (
 	"strconv"
 	"time" //gci:disable
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app/dto"
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"     //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common/dto" //nolint:depguard
 )
 
-func MapperDtoEventToEvent(dtoEvent *dto.Event) (*Event, error) {
+func MapperDtoEventToEvent(dtoEvent *dto.Event) (*common.Event, error) {
 	UserID, err := strconv.Atoi(dtoEvent.UserID)
 	if err != nil {
 		return nil, err
 	}
-	return &Event{
+	return &common.Event{
 		ID:          dtoEvent.ID,
 		Title:       dtoEvent.Title,
 		Description: dtoEvent.Description,
@@ -24,7 +25,7 @@ func MapperDtoEventToEvent(dtoEvent *dto.Event) (*Event, error) {
 	}, nil
 }
 
-func MapperEventToDtoEvent(event *Event) (*dto.Event, error) {
+func MapperEventToDtoEvent(event *common.Event) (*dto.Event, error) {
 	return &dto.Event{
 		ID:          event.ID.(string),
 		Title:       event.Title,

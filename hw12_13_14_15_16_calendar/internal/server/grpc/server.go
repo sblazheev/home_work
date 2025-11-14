@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"syscall"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"    //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config" //nolint:depguard
-	logging "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/grpc/interceptors"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/grpc/pb"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
-	"google.golang.org/grpc"
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app"                              //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"                           //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"                           //nolint:depguard
+	logging "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/grpc/interceptors" //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/server/grpc/pb"                   //nolint:depguard
+	"google.golang.org/grpc"                                                                          //nolint:depguard
 )
 
 type Server struct {

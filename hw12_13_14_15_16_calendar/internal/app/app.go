@@ -4,28 +4,30 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/app/dto"
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"         //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage"        //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
+	"github.com/go-playground/validator/v10"                                                      //nolint:depguard
+	"github.com/google/uuid"                                                                      //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"                       //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common/dto"                   //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"                       //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage"                      //nolint:depguard
+	memorystorage "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/memory" //nolint:depguard
+	sqlstorage "github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/sql"       //nolint:depguard
 )
 
 type App struct {
 	logger  common.LoggerInterface
-	storage *storage.Storage
+	storage *common.Storage
 	cfg     *config.Config
 	ctx     *context.Context
 }
 
 func New(cfg *config.Config, logger common.LoggerInterface, ctx *context.Context) (*App, error) {
-	storageDriver, err := storage.NewStorageDriver(ctx, cfg.Storage)
+	storageDriver, err := NewStorageDriver(ctx, cfg.Storage)
 	if err != nil {
 		return nil, err
 	}
 
-	str, err := storage.New(ctx, storageDriver)
+	str, err := common.New(ctx, storageDriver)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +38,16 @@ func New(cfg *config.Config, logger common.LoggerInterface, ctx *context.Context
 		storage: str,
 		ctx:     ctx,
 	}, nil
+}
+
+func NewStorageDriver(ctx *context.Context, c config.StorageConfig) (common.StorageDriverInterface, error) {
+	switch c.Type {
+	case "memory":
+		return memorystorage.New(), nil
+	case "sql":
+		return sqlstorage.New(ctx, c), nil
+	}
+	return nil, common.ErrStorageUnknownType
 }
 
 func (a *App) isOverlapping(e1, e2 common.Event) bool { //nolint:unused
@@ -50,7 +62,7 @@ func (a *App) CreateEvent(dtoEvent *dto.Event) (*dto.Event, error) {
 	if err != nil {
 		return dtoEvent, err
 	}
-	event, err := common.MapperDtoEventToEvent(dtoEvent)
+	event, err := storage.MapperDtoEventToEvent(dtoEvent)
 	if err != nil {
 		return dtoEvent, err
 	}
@@ -58,7 +70,7 @@ func (a *App) CreateEvent(dtoEvent *dto.Event) (*dto.Event, error) {
 	if err != nil {
 		return dtoEvent, err
 	}
-	return common.MapperEventToDtoEvent(event)
+	return storage.MapperEventToDtoEvent(event)
 }
 
 func (a *App) UpdateEvent(dtoEvent *dto.Event) error {
@@ -71,7 +83,7 @@ func (a *App) UpdateEvent(dtoEvent *dto.Event) error {
 	if err != nil {
 		return err
 	}
-	event, err := common.MapperDtoEventToEvent(dtoEvent)
+	event, err := storage.MapperDtoEventToEvent(dtoEvent)
 	if err != nil {
 		return err
 	}
@@ -99,7 +111,7 @@ func (a *App) GetEvent(id interface{}) (*dto.Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	return common.MapperEventToDtoEvent(&event)
+	return storage.MapperEventToDtoEvent(&event)
 }
 
 func (a *App) ListEvent() ([]*dto.Event, error) {
@@ -109,7 +121,7 @@ func (a *App) ListEvent() ([]*dto.Event, error) {
 	}
 	listDto := make([]*dto.Event, 0, len(list))
 	for _, item := range list {
-		itemDto, err := common.MapperEventToDtoEvent(&item)
+		itemDto, err := storage.MapperEventToDtoEvent(&item)
 		if err != nil {
 			return listDto, err
 		}
