@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-playground/validator/v10"                                                      //nolint:depguard
 	"github.com/google/uuid"                                                                      //nolint:depguard
@@ -15,10 +14,11 @@ import (
 )
 
 type App struct {
-	logger  common.LoggerInterface
-	storage *common.Storage
-	cfg     *config.Config
-	ctx     *context.Context
+	dateOverlapping bool
+	logger          common.LoggerInterface
+	storage         *common.Storage
+	cfg             *config.Config
+	ctx             *context.Context
 }
 
 func New(cfg *config.Config, logger common.LoggerInterface, ctx *context.Context) (*App, error) {
@@ -33,10 +33,11 @@ func New(cfg *config.Config, logger common.LoggerInterface, ctx *context.Context
 	}
 
 	return &App{
-		cfg:     cfg,
-		logger:  logger,
-		storage: str,
-		ctx:     ctx,
+		dateOverlapping: cfg.App.Overlapping,
+		cfg:             cfg,
+		logger:          logger,
+		storage:         str,
+		ctx:             ctx,
 	}, nil
 }
 
@@ -50,9 +51,11 @@ func NewStorageDriver(ctx *context.Context, c config.StorageConfig) (common.Stor
 	return nil, common.ErrStorageUnknownType
 }
 
-func (a *App) isOverlapping(e1, e2 common.Event) bool { //nolint:unused
-	return e1.DateTime.Before(e2.DateTime.Add(time.Duration(e2.Duration))) && //nolint:gosec
-		e2.DateTime.Before(e1.DateTime.Add(time.Duration(e2.Duration))) //nolint:gosec
+func (a *App) isOverlapping(e *common.Event) (bool, error) {
+	if a.dateOverlapping {
+		return false, nil
+	}
+	return a.storage.IsOverlapping(e)
 }
 
 func (a *App) CreateEvent(dtoEvent *dto.Event) (*dto.Event, error) {
@@ -65,6 +68,13 @@ func (a *App) CreateEvent(dtoEvent *dto.Event) (*dto.Event, error) {
 	event, err := storage.MapperDtoEventToEvent(dtoEvent)
 	if err != nil {
 		return dtoEvent, err
+	}
+	overlap, err := a.isOverlapping(event)
+	if err != nil {
+		return nil, err
+	}
+	if overlap {
+		return dtoEvent, common.ErrEventConflictOverlap
 	}
 	*event, err = a.storage.Add(*event)
 	if err != nil {
@@ -86,6 +96,13 @@ func (a *App) UpdateEvent(dtoEvent *dto.Event) error {
 	event, err := storage.MapperDtoEventToEvent(dtoEvent)
 	if err != nil {
 		return err
+	}
+	overlap, err := a.isOverlapping(event)
+	if err != nil {
+		return err
+	}
+	if overlap {
+		return common.ErrEventConflictOverlap
 	}
 	err = a.storage.Update(*event)
 	if err != nil {

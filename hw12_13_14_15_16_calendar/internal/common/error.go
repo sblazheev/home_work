@@ -4,6 +4,7 @@ package common
 import "fmt"
 
 var (
+	ErrServiceUnavailable   = fmt.Errorf("service unavailable")
 	ErrEventNotFound        = fmt.Errorf("event not found")
 	ErrEventDateBusy        = fmt.Errorf("the selected time is already busy")
 	ErrEventInvalidEvent    = fmt.Errorf("invalid event data")

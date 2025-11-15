@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"sync"
+	"time"
 
 	"github.com/google/uuid"                                                //nolint:depguard
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
@@ -81,4 +82,18 @@ func (s *Storage) List() ([]common.Event, error) {
 
 func (s *Storage) PrepareStorage(_ common.LoggerInterface) error {
 	return nil
+}
+
+func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	ecStart, ecFinish := ec.DateTime.Unix(), ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Unix() //nolint:gosec
+	for _, e := range s.events {
+		eStart, eFinish := e.DateTime.Unix(), e.DateTime.Add(time.Duration(e.Duration)*time.Second).Unix() //nolint:gosec
+
+		if ecStart >= eStart && ecStart <= eFinish || ecStart <= eStart && ecFinish <= eFinish {
+			return true, nil
+		}
+	}
+	return false, nil
 }

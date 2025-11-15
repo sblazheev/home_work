@@ -8,6 +8,7 @@ type StorageDriverInterface interface {
 	GetByID(id interface{}) (Event, error)
 	List() ([]Event, error)
 	PrepareStorage(log LoggerInterface) error
+	IsOverlapping(event *Event) (bool, error)
 }
 
 type LoggerInterface interface {

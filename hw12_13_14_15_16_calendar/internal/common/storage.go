@@ -36,3 +36,7 @@ func (s *Storage) GetByID(id interface{}) (Event, error) {
 func (s *Storage) List() ([]Event, error) {
 	return s.s.List()
 }
+
+func (s *Storage) IsOverlapping(event *Event) (bool, error) {
+	return s.s.IsOverlapping(event)
+}

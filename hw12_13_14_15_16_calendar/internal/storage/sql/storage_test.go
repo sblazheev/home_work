@@ -28,6 +28,11 @@ func TestSqlStorage(t *testing.T) {
 		event.ID = newEvent.ID
 		require.Equal(t, event, newEvent)
 	})
+	t.Run("Check Overlapping", func(t *testing.T) {
+		res, err := s.IsOverlapping(&event)
+		require.NoError(t, err)
+		require.Equal(t, true, res)
+	})
 	t.Run("Get list", func(t *testing.T) {
 		newEvents, err := s.List()
 		require.NoError(t, err)

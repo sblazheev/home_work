@@ -91,14 +91,21 @@ func (h *HTTPHandler) createEventHandler(w http.ResponseWriter, r *http.Request)
 	}
 	dtoEvent, err = h.app.CreateEvent(dtoEvent)
 	if err != nil {
-		h.logger.Error("createEventHandler", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		if errors.Is(err, common.ErrEventConflictOverlap) {
+			h.logger.Debug("createEventHandler-ConflictOverlap", "err", err)
+			JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest), "ConflictOverlap", err, w)
+		} else {
+			h.logger.Error("createEventHandler", "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
 		return
 	}
 	dtoEventJSON, err := json.Marshal(dtoEvent)
 	if err != nil {
 		h.logger.Error("createEventHandler-Json marshal", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	w.Write(dtoEventJSON)
@@ -128,14 +135,21 @@ func (h *HTTPHandler) updateEventHandler(w http.ResponseWriter, r *http.Request)
 	}
 	err = h.app.UpdateEvent(&dtoEvent)
 	if err != nil {
-		h.logger.Error("updateEventHandler", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		if errors.Is(err, common.ErrEventConflictOverlap) {
+			h.logger.Debug("updateEventHandler-ConflictOverlap", "err", err)
+			JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest), "ConflictOverlap", err, w)
+		} else {
+			h.logger.Error("updateEventHandler", "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
 		return
 	}
 	dtoEventJSON, err := json.Marshal(dtoEvent)
 	if err != nil {
 		h.logger.Error("updateEventHandler-Json marshal", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	w.Write(dtoEventJSON)

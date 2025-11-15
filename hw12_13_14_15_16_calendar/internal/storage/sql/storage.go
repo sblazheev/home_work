@@ -3,6 +3,7 @@ package sqlstorage
 import (
 	"context"
 	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"                                                                //nolint:depguard
 	_ "github.com/jackc/pgx/stdlib"                                                         //nolint:depguard
@@ -117,4 +118,19 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
+	count := 0
+	sql := `SELECT count(*) as count FROM events e where tstzrange(e.date_time,e.date_time 
++ make_interval(secs => e.duration)) && tstzrange($1::timestamptz, $2::timestamptz);`
+	err := s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
+		ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339)) //nolint:gosec
+	if err != nil {
+		return true, err
+	}
+	if count > 0 {
+		return true, nil
+	}
+	return false, nil
 }
