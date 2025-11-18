@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-playground/validator/v10"                                                      //nolint:depguard
 	"github.com/google/uuid"                                                                      //nolint:depguard
@@ -138,11 +139,97 @@ func (a *App) ListEvent() ([]*dto.Event, error) {
 	}
 	listDto := make([]*dto.Event, 0, len(list))
 	for _, item := range list {
-		itemDto, err := storage.MapperEventToDtoEvent(&item)
+		itemDto, err := storage.MapperEventToDtoEvent(item)
 		if err != nil {
 			return listDto, err
 		}
 		listDto = append(listDto, itemDto)
 	}
 	return listDto, nil
+}
+
+func (a *App) ListEventUserByDay(user string, date string) ([]*dto.Event, error) {
+	parsedTime, err := time.Parse(time.DateOnly, date)
+	if err != nil {
+		return nil, common.ErrQueryRequest
+	}
+	parsedTimeNext := parsedTime.Add(time.Hour * 24)
+	list, err := a.storage.ListByUserInRange(user, parsedTime, parsedTimeNext)
+	if err != nil {
+		return nil, err
+	}
+	listDto := make([]*dto.Event, 0, len(list))
+	for _, item := range list {
+		itemDto, err := storage.MapperEventToDtoEvent(item)
+		if err != nil {
+			return listDto, err
+		}
+		listDto = append(listDto, itemDto)
+	}
+	return listDto, nil
+}
+
+func (a *App) ListEventUserByWeek(user string, date string) ([]*dto.Event, error) {
+	parsedTime, err := time.Parse(time.DateOnly, date)
+	if err != nil {
+		return nil, common.ErrQueryRequest
+	}
+	parsedTimeNext := parsedTime.Add(time.Hour * 24 * 7)
+	list, err := a.storage.ListByUserInRange(user, parsedTime, parsedTimeNext)
+	if err != nil {
+		return nil, err
+	}
+	listDto := make([]*dto.Event, 0, len(list))
+	for _, item := range list {
+		itemDto, err := storage.MapperEventToDtoEvent(item)
+		if err != nil {
+			return listDto, err
+		}
+		listDto = append(listDto, itemDto)
+	}
+	return listDto, nil
+}
+
+func (a *App) ListEventUserByMonth(user string, date string) ([]*dto.Event, error) {
+	time, err := time.Parse(time.DateOnly, date)
+	if err != nil {
+		return nil, common.ErrQueryRequest
+	}
+	timeNext := time.AddDate(0, 1, -time.Day())
+	list, err := a.storage.ListByUserInRange(user, time, timeNext)
+	if err != nil {
+		return nil, err
+	}
+	listDto := make([]*dto.Event, 0, len(list))
+	for _, item := range list {
+		itemDto, err := storage.MapperEventToDtoEvent(item)
+		if err != nil {
+			return listDto, err
+		}
+		listDto = append(listDto, itemDto)
+	}
+	return listDto, nil
+}
+
+func (a *App) ListEventsNotification(ctx context.Context, limit int) ([]*dto.Event, error) {
+	allEvents, err := a.storage.ListEventsNotification(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	events := make([]*dto.Event, 0, limit)
+
+	for _, event := range allEvents {
+		itemDto, err := storage.MapperEventToDtoEvent(event)
+		if err != nil {
+			return events, err
+		}
+		events = append(events, itemDto)
+	}
+
+	return events, nil
+}
+
+func (a *App) SaveNotificationStatus(ctx context.Context, status *common.NotificationStatus) error {
+	return a.storage.SaveNotificationStatus(ctx, status)
 }

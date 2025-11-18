@@ -1,7 +1,6 @@
 package internalhttp
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -44,6 +43,5 @@ func errorJSONMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		nextW := NewStatusResponseWriter(w)
 		next.ServeHTTP(nextW, r)
-		fmt.Printf("%v", nextW.Header())
 	})
 }

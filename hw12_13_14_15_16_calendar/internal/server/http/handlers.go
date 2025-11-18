@@ -37,6 +37,9 @@ func NewHandler(app app.App, logger common.LoggerInterface) *HTTPHandler {
 	mux.HandleFunc("GET /event/{uuid}", handler.getEventHandler)
 	mux.HandleFunc("DELETE /event/{uuid}", handler.deleteEventHandler)
 	mux.HandleFunc("GET /event/list", handler.listEventHandler)
+	mux.HandleFunc("GET /event/listday", handler.listEventByDayHandler)
+	mux.HandleFunc("GET /event/listweek", handler.listEventByWeekHandler)
+	mux.HandleFunc("GET /event/listmonth", handler.listEventByMonthHandler)
 	mux.HandleFunc("/swagger/", httpSwagger.Handler(
 		httpSwagger.URL("doc.json"),
 	))
@@ -178,14 +181,16 @@ func (h *HTTPHandler) getEventHandler(w http.ResponseWriter, r *http.Request) {
 			JSONError(http.StatusNotFound, strconv.Itoa(http.StatusNotFound), "NotFound", err, w)
 		} else {
 			h.logger.Error("getEventHandler", "uuid", uid, "err", err)
-			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
 		}
 		return
 	}
 	dtoEventJSON, err := json.Marshal(dtoEvent)
 	if err != nil {
 		h.logger.Error("getEventHandler-Json marshal", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	w.Write(dtoEventJSON)
@@ -210,7 +215,8 @@ func (h *HTTPHandler) deleteEventHandler(w http.ResponseWriter, r *http.Request)
 	err = h.app.DeleteEvent(uid)
 	if err != nil {
 		h.logger.Error("deleteEventHandler", "uuid", uid, "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -227,13 +233,114 @@ func (h *HTTPHandler) listEventHandler(w http.ResponseWriter, _ *http.Request) {
 	dtoEvent, err := h.app.ListEvent()
 	if err != nil {
 		h.logger.Error("listEventHandler", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	dtoEventJSON, err := json.Marshal(dtoEvent)
 	if err != nil {
 		h.logger.Error("listEventHandler-Json marshal", "err", err)
-		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable), "Service Unavailable", nil, w)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
+		return
+	}
+	w.Write(dtoEventJSON)
+}
+
+// @Summary      Список событий для пользователя за сутки
+// @Description  Список событий для пользователя за сутки
+// @Tags         Event
+// @Accept       json
+// @Produce      json
+// @Param    	 user    query  string true  "ID пользователя"
+// @Param    	 date    query  string true  "Дата YYYY-MM-DD"
+// @Success      200  {array} dto.Event
+// @Router       /event/listday [get] .
+func (h *HTTPHandler) listEventByDayHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	dtoEvent, err := h.app.ListEventUserByDay(r.URL.Query().Get("user"), r.URL.Query().Get("date"))
+	if err != nil {
+		if errors.Is(err, common.ErrQueryRequest) {
+			h.logger.Debug("listEventByDayHandler", "err", err)
+			JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest),
+				"Bad Request", err, w)
+		} else {
+			h.logger.Error("listEventByDayHandler", "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
+		return
+	}
+	dtoEventJSON, err := json.Marshal(dtoEvent)
+	if err != nil {
+		h.logger.Error("listEventByDayHandler-Json marshal", "err", err)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
+		return
+	}
+	w.Write(dtoEventJSON)
+}
+
+// @Summary      Список событий для пользователя за неделю
+// @Description  Список событий для пользователя за неделю
+// @Tags         Event
+// @Accept       json
+// @Produce      json
+// @Param    	 user    query  string true  "ID пользователя"
+// @Param    	 date    query  string true  "Дата первого дня недели в формате YYYY-MM-DD"
+// @Success      200  {array} dto.Event
+// @Router       /event/listweek [get] .
+func (h *HTTPHandler) listEventByWeekHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	dtoEvent, err := h.app.ListEventUserByWeek(r.URL.Query().Get("user"), r.URL.Query().Get("date"))
+	if err != nil {
+		if errors.Is(err, common.ErrQueryRequest) {
+			h.logger.Debug("listEventByWeekHandler", "err", err)
+			JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest),
+				"Bad Request", err, w)
+		} else {
+			h.logger.Error("listEventByWeekHandler", "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
+		return
+	}
+	dtoEventJSON, err := json.Marshal(dtoEvent)
+	if err != nil {
+		h.logger.Error("listEventByWeekHandler-Json marshal", "err", err)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
+		return
+	}
+	w.Write(dtoEventJSON)
+}
+
+// @Summary      Список событий для пользователя за месяц
+// @Description  Список событий для пользователя за месяц
+// @Tags         Event
+// @Accept       json
+// @Produce      json
+// @Param    	 user    query  string true  "ID пользователя"
+// @Param    	 date    query  string true  "Дата первого дня месяц в формате YYYY-MM-DD"
+// @Success      200  {array} dto.Event
+// @Router       /event/listmonth [get] .
+func (h *HTTPHandler) listEventByMonthHandler(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	dtoEvent, err := h.app.ListEventUserByMonth(r.URL.Query().Get("user"), r.URL.Query().Get("date"))
+	if err != nil {
+		if errors.Is(err, common.ErrQueryRequest) {
+			h.logger.Debug("listEventByMonthHandler", "err", err)
+			JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest),
+				"Bad Request", err, w)
+		} else {
+			h.logger.Error("listEventByMonthHandler", "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
+		return
+	}
+	dtoEventJSON, err := json.Marshal(dtoEvent)
+	if err != nil {
+		h.logger.Error("listEventByMonthHandler-Json marshal", "err", err)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
 	w.Write(dtoEventJSON)

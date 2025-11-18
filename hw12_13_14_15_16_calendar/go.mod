@@ -9,9 +9,9 @@ require (
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/pressly/goose/v3 v3.26.0
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
-	github.com/swaggo/files v1.0.1
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
 	google.golang.org/grpc v1.75.1

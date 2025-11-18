@@ -11,3 +11,10 @@ http:
 grpc:
   host: 192.168.2.64
   port: 81
+sender:
+scheduler:
+  interval: 10
+broker:
+  ampq: "amqp://admin:admin@amqp:5672"
+  queue:
+    notify: "calendar_notify"

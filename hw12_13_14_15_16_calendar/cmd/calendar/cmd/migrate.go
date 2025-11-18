@@ -43,7 +43,7 @@ var migrateCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(migrateCmd)
+	RootCmd.AddCommand(migrateCmd)
 	migrateCmd.Flags().StringVarP(&configFileMigrate, "config", "c", "", "Path to Config file")
 	migrateCmd.MarkFlagRequired("config")
 }

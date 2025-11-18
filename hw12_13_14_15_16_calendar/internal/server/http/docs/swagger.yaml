@@ -114,6 +114,90 @@ paths:
       summary: Список событий
       tags:
       - Event
+  /event/listday:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за сутки
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за сутки
+      tags:
+      - Event
+  /event/listmonth:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за месяц
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата первого дня месяц в формате YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за месяц
+      tags:
+      - Event
+  /event/listweek:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за неделю
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата первого дня недели в формате YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за неделю
+      tags:
+      - Event
   /event/update:
     post:
       consumes:

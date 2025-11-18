@@ -3,7 +3,21 @@ package common
 
 import (
 	"context"
+	"time"
 )
+
+type StorageDriverInterface interface {
+	Add(event Event) (Event, error)
+	Update(event Event) error
+	Delete(id interface{}) error
+	GetByID(id interface{}) (Event, error)
+	List() ([]*Event, error)
+	PrepareStorage(log LoggerInterface) error
+	IsOverlapping(event *Event) (bool, error)
+	ListByUserInRange(user string, from, to time.Time) ([]*Event, error)
+	ListEventsNotification(ctx context.Context, limit int) ([]*Event, error)
+	SaveNotificationStatus(ctx context.Context, status *NotificationStatus) error
+}
 
 type Storage struct {
 	s   StorageDriverInterface
@@ -33,10 +47,22 @@ func (s *Storage) GetByID(id interface{}) (Event, error) {
 	return s.s.GetByID(id)
 }
 
-func (s *Storage) List() ([]Event, error) {
+func (s *Storage) List() ([]*Event, error) {
 	return s.s.List()
 }
 
 func (s *Storage) IsOverlapping(event *Event) (bool, error) {
 	return s.s.IsOverlapping(event)
+}
+
+func (s *Storage) ListByUserInRange(user string, from, to time.Time) ([]*Event, error) {
+	return s.s.ListByUserInRange(user, from, to)
+}
+
+func (s *Storage) ListEventsNotification(ctx context.Context, limit int) ([]*Event, error) {
+	return s.s.ListEventsNotification(ctx, limit)
+}
+
+func (s *Storage) SaveNotificationStatus(ctx context.Context, status *NotificationStatus) error {
+	return s.s.SaveNotificationStatus(ctx, status)
 }

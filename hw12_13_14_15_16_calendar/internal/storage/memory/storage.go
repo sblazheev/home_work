@@ -1,6 +1,7 @@
 package memorystorage
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -11,6 +12,18 @@ import (
 type Storage struct {
 	events map[string]common.Event
 	mu     sync.RWMutex
+}
+
+func (s *Storage) SaveNotificationStatus(_ context.Context, _ *common.NotificationStatus) error {
+	return nil
+}
+
+func (s *Storage) ListEventsNotification(_ context.Context, _ int) ([]*common.Event, error) {
+	return nil, nil
+}
+
+func (s *Storage) ListByUserInRange(_ string, _, _ time.Time) ([]*common.Event, error) {
+	return nil, nil
 }
 
 func New() common.StorageDriverInterface {
@@ -69,13 +82,13 @@ func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 	return event, nil
 }
 
-func (s *Storage) List() ([]common.Event, error) {
+func (s *Storage) List() ([]*common.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	result := make([]common.Event, 0, len(s.events))
+	result := make([]*common.Event, 0, len(s.events))
 	for _, v := range s.events {
-		result = append(result, v)
+		result = append(result, &v)
 	}
 	return result, nil
 }

@@ -70,7 +70,7 @@ var serveCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(serveCmd)
+	RootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to Config file")
 	serveCmd.MarkFlagRequired("config")
 }

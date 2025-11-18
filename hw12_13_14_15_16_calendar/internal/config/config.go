@@ -17,11 +17,14 @@ var (
 )
 
 type Config struct {
-	App     AppConfig
-	Logger  LogConfig
-	Storage StorageConfig
-	HTTP    HTTPConfig
-	Grpc    GrpcConfig
+	App       AppConfig
+	Logger    LogConfig
+	Storage   StorageConfig
+	HTTP      HTTPConfig
+	Grpc      GrpcConfig
+	Broker    BrokerConfig
+	Scheduler SchedulerConfig
+	Sender    SenderConfig
 }
 
 type AppConfig struct {
@@ -47,6 +50,23 @@ type GrpcConfig struct {
 	Port string `config:"port"`
 }
 
+type BrokerConfig struct {
+	Queue QueueConfig
+	Ampq  string `config:"ampq"`
+}
+
+type QueueConfig struct {
+	Notify string `config:"notify"`
+}
+
+type SchedulerConfig struct {
+	Interval int `config:"interval"`
+}
+
+type SenderConfig struct {
+	Interval int `config:"interval"`
+}
+
 func New(configPath string) (*Config, error) {
 	loggerLeverPosible := []string{"info", "warn", "debug", "error", ""}
 	cfg := Config{
@@ -56,9 +76,12 @@ func New(configPath string) (*Config, error) {
 		Logger: LogConfig{
 			Level: "info",
 		},
-		Storage: StorageConfig{},
-		HTTP:    HTTPConfig{},
-		Grpc:    GrpcConfig{},
+		Storage:   StorageConfig{},
+		HTTP:      HTTPConfig{},
+		Grpc:      GrpcConfig{},
+		Broker:    BrokerConfig{},
+		Scheduler: SchedulerConfig{},
+		Sender:    SenderConfig{},
 	}
 	loader := confita.NewLoader(
 		file.NewBackend(configPath),

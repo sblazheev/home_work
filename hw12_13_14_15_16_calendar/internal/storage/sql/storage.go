@@ -82,8 +82,8 @@ func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 	return event, err
 }
 
-func (s *Storage) List() ([]common.Event, error) {
-	event := make([]common.Event, 0)
+func (s *Storage) List() ([]*common.Event, error) {
+	event := make([]*common.Event, 0)
 	sql := `SELECT "id","title","date_time","duration","description","user","notify_time" FROM events`
 	err := s.db.SelectContext(*s.ctx, &event, sql)
 	if err != nil && err.Error() == "sql: no rows in result set" {
@@ -133,4 +133,36 @@ func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (s *Storage) ListByUserInRange(user string, from, to time.Time) ([]*common.Event, error) {
+	var events []*common.Event
+	sql := `SELECT * FROM events WHERE "user" = $1 AND date_time >= $2::date AND date_time < $3::date`
+	err := s.db.Select(&events, sql, user, from.Format(time.DateOnly), to.Format(time.DateOnly))
+	return events, err
+}
+
+func (s *Storage) ListEventsNotification(ctx context.Context, limit int) ([]*common.Event, error) {
+	var events []*common.Event
+	sql := `SELECT e.* FROM events e left join 
+    "notify" n on e.id = n.event_id  WHERE e.notify_time > 0 and now() > date_time - 
+    make_interval(secs => e.notify_time) and n.status is null 
+    order by date_time - make_interval(secs => e.notify_time) asc limit $1;`
+	err := s.db.SelectContext(ctx, &events, sql, limit)
+	return events, err
+}
+
+func (s *Storage) SaveNotificationStatus(ctx context.Context, status *common.NotificationStatus) error {
+	sql := `INSERT INTO notify("event_id","create_time","status")  VALUES(:event_id, :create_time, :status)
+ON CONFLICT (event_id) DO UPDATE SET
+send_time = EXCLUDED.send_time,
+		status = EXCLUDED.status`
+	if !status.SendTime.IsZero() {
+		sql = `INSERT INTO notify("event_id","send_time","status")  VALUES(:event_id, :send_time, :status)
+ON CONFLICT (event_id) DO UPDATE SET
+send_time = EXCLUDED.send_time,
+		status = EXCLUDED.status`
+	}
+	_, err := s.db.NamedExecContext(ctx, sql, *status)
+	return err
 }
