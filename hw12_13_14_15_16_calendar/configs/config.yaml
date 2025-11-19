@@ -13,7 +13,9 @@ grpc:
   port: 81
 sender:
 scheduler:
-  interval: 10
+  interval: 10 #в секундах
+  keepdays: 365 #в днях
+  chunk: 100
 broker:
   ampq: "amqp://admin:admin@amqp:5672"
   queue:

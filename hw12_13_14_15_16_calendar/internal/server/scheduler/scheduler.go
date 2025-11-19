@@ -40,7 +40,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			s.l.Info("Stopping scheduler...")
 			return ctx.Err()
 		case <-ticker.C:
-			events, err := s.app.ListEventsNotification(ctx, 100)
+			events, err := s.app.ListEventsNotification(ctx, s.cfg.Chunk)
 			if err != nil {
 				s.l.Error("Error fetching events", "error", err)
 				continue
@@ -70,10 +70,15 @@ func (s *Scheduler) Run(ctx context.Context) error {
 				}
 				s.l.Info("Published notification for event", "id", event.ID)
 			}
-
-			/*if err := s.app.DeleteOlderThan(ctx, time.Now().Add(-s.cfg.Scheduler.RetentionPeriod)); err != nil {
-				s.logger.Warnf("Failed to delete old events: %v", err)
-			}*/
+			clearResult, err := s.app.ClearEventsNotification(ctx, s.cfg.KeepDays)
+			if err != nil {
+				s.l.Error("failed to delete old events", "error", err)
+			} else {
+				deleted, _ := clearResult.RowsAffected()
+				if deleted > 0 {
+					s.l.Info("Deleted notification for event", "del", deleted)
+				}
+			}
 		}
 	}
 }

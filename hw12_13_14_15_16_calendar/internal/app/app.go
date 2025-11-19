@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/go-playground/validator/v10"                                                      //nolint:depguard
@@ -232,4 +233,8 @@ func (a *App) ListEventsNotification(ctx context.Context, limit int) ([]*dto.Eve
 
 func (a *App) SaveNotificationStatus(ctx context.Context, status *common.NotificationStatus) error {
 	return a.storage.SaveNotificationStatus(ctx, status)
+}
+
+func (a *App) ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error) {
+	return a.storage.ClearEventsNotification(ctx, keepDays)
 }

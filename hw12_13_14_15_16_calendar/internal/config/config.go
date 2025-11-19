@@ -61,6 +61,8 @@ type QueueConfig struct {
 
 type SchedulerConfig struct {
 	Interval int `config:"interval"`
+	KeepDays int `config:"keepdays"`
+	Chunk    int `config:"chunk"`
 }
 
 type SenderConfig struct {

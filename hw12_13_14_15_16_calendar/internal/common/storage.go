@@ -3,6 +3,7 @@ package common
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type StorageDriverInterface interface {
 	ListByUserInRange(user string, from, to time.Time) ([]*Event, error)
 	ListEventsNotification(ctx context.Context, limit int) ([]*Event, error)
 	SaveNotificationStatus(ctx context.Context, status *NotificationStatus) error
+	ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error)
 }
 
 type Storage struct {
@@ -65,4 +67,8 @@ func (s *Storage) ListEventsNotification(ctx context.Context, limit int) ([]*Eve
 
 func (s *Storage) SaveNotificationStatus(ctx context.Context, status *NotificationStatus) error {
 	return s.s.SaveNotificationStatus(ctx, status)
+}
+
+func (s *Storage) ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error) {
+	return s.s.ClearEventsNotification(ctx, keepDays)
 }

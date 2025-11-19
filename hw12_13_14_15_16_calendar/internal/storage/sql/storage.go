@@ -2,6 +2,7 @@ package sqlstorage
 
 import (
 	"context"
+	"database/sql"
 	"path/filepath"
 	"time"
 
@@ -146,10 +147,15 @@ func (s *Storage) ListEventsNotification(ctx context.Context, limit int) ([]*com
 	var events []*common.Event
 	sql := `SELECT e.* FROM events e left join 
     "notify" n on e.id = n.event_id  WHERE e.notify_time > 0 and now() > date_time - 
-    make_interval(secs => e.notify_time) and n.status is null 
+    make_interval(secs => e.notify_time) and n.status is null AND date_time > now()
     order by date_time - make_interval(secs => e.notify_time) asc limit $1;`
 	err := s.db.SelectContext(ctx, &events, sql, limit)
 	return events, err
+}
+
+func (s *Storage) ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error) {
+	sql := `delete from "notify" where create_time < now() - make_interval(days => $1);`
+	return s.db.ExecContext(ctx, sql, keepDays)
 }
 
 func (s *Storage) SaveNotificationStatus(ctx context.Context, status *common.NotificationStatus) error {

@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"context"
+	"database/sql"
 	"sync"
 	"time"
 
@@ -12,6 +13,10 @@ import (
 type Storage struct {
 	events map[string]common.Event
 	mu     sync.RWMutex
+}
+
+func (s *Storage) ClearEventsNotification(_ context.Context, _ int) (sql.Result, error) {
+	return nil, nil
 }
 
 func (s *Storage) SaveNotificationStatus(_ context.Context, _ *common.NotificationStatus) error {
