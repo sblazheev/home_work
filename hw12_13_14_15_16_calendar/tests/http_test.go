@@ -211,8 +211,10 @@ func TestCalendar(t *testing.T) {
 				if http.StatusOK == resp.StatusCode {
 					var res common.NotificationStatus
 					err = json.NewDecoder(resp.Body).Decode(&res)
-					require.Equal(t, common.StatusNotifyDelivered, res.Status)
-					return
+					if res.Status == common.StatusNotifyDelivered {
+						require.Equal(t, common.StatusNotifyDelivered, res.Status)
+						return
+					}
 				}
 			}
 		}

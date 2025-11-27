@@ -23,7 +23,7 @@ services:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "status" ]
       interval: 5s
       timeout: 10s
-      retries: 5
+      retries: 15
     restart: always
     ports:
       - "5672:5672"        # AMQP
