@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/heetch/confita"              //nolint:depguard
-	"github.com/heetch/confita/backend/env"  //nolint:depguard
-	"github.com/heetch/confita/backend/file" //nolint:depguard
+	"github.com/heetch/confita" //nolint:depguard
+	"github.com/heetch/confita/backend/env"
+	"github.com/heetch/confita/backend/file"
 )
 
 var (
@@ -82,13 +82,21 @@ func New(configPath string) (*Config, error) {
 		HTTP:      HTTPConfig{},
 		Grpc:      GrpcConfig{},
 		Broker:    BrokerConfig{},
-		Scheduler: SchedulerConfig{},
-		Sender:    SenderConfig{},
+		Scheduler: SchedulerConfig{Chunk: 100, KeepDays: 365, Interval: 10},
+		Sender:    SenderConfig{Interval: 10},
 	}
-	loader := confita.NewLoader(
-		file.NewBackend(configPath),
-		env.NewBackend(),
-	)
+	var loader *confita.Loader
+	if len(configPath) > 0 {
+		loader = confita.NewLoader(
+			file.NewBackend(configPath),
+			env.NewBackend(),
+		)
+	} else {
+		loader = confita.NewLoader(
+			env.NewBackend(),
+		)
+	}
+
 	err := loader.Load(context.Background(), &cfg)
 	if err != nil {
 		return &cfg, ErrLoadConfig

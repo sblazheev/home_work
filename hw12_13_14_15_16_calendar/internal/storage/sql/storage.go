@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/google/uuid"                                                                //nolint:depguard
-	_ "github.com/jackc/pgx/stdlib"                                                         //nolint:depguard
-	"github.com/jmoiron/sqlx"                                                               //nolint:depguard
-	"github.com/pressly/goose/v3"                                                           //nolint:depguard
+	"github.com/google/uuid"        //nolint:depguard
+	_ "github.com/jackc/pgx/stdlib" //nolint:depguard
+	"github.com/jmoiron/sqlx"       //nolint:depguard
+	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/database"                                                  //nolint:depguard
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"                 //nolint:depguard
 	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"                 //nolint:depguard
@@ -123,10 +123,19 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 
 func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
 	count := 0
-	sql := `SELECT count(*) as count FROM events e where tstzrange(e.date_time,e.date_time 
+	var err error
+	if len(ec.ID.(string)) > 0 {
+		sql := `SELECT count(*) as count FROM events e where e.ID != $3::uuid AND tstzrange(e.date_time,e.date_time 
 + make_interval(secs => e.duration)) && tstzrange($1::timestamptz, $2::timestamptz);`
-	err := s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
-		ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339)) //nolint:gosec
+		err = s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
+			ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339), //nolint:gosec
+			ec.ID.(string))
+	} else {
+		sql := `SELECT count(*) as count FROM events e where tstzrange(e.date_time,e.date_time 
++ make_interval(secs => e.duration)) && tstzrange($1::timestamptz, $2::timestamptz);`
+		err = s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
+			ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339)) //nolint:gosec
+	}
 	if err != nil {
 		return true, err
 	}
@@ -171,4 +180,15 @@ send_time = EXCLUDED.send_time,
 	}
 	_, err := s.db.NamedExecContext(ctx, sql, *status)
 	return err
+}
+
+func (s *Storage) GetNotificationStatus(ctx context.Context, id string) (*common.NotificationStatus, error) {
+	var status []*common.NotificationStatus
+	sql := `SELECT event_id, COALESCE(send_time, '0001-01-01 00:00:00 +0000')::timestamptz as send_time, status, 
+       create_time FROM notify n WHERE n.event_id = $1::uuid;`
+	err := s.db.SelectContext(ctx, &status, sql, id)
+	if len(status) > 0 {
+		return status[0], err
+	}
+	return nil, err
 }

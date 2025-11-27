@@ -41,6 +41,17 @@ definitions:
       message:
         type: string
     type: object
+  common.NotificationStatus:
+    properties:
+      createTime:
+        type: string
+      eventId:
+        type: string
+      sendTime:
+        type: string
+      status:
+        type: integer
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -198,6 +209,29 @@ paths:
       summary: Список событий для пользователя за неделю
       tags:
       - Event
+  /event/status/{uuid}:
+    get:
+      consumes:
+      - application/json
+      description: Получить событие
+      parameters:
+      - description: UUID события
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.NotificationStatus'
+        "404":
+          description: Not Found
+      summary: Получить событие
+      tags:
+      - Event
   /event/update:
     post:
       consumes:
@@ -213,8 +247,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/Event'
         "400":

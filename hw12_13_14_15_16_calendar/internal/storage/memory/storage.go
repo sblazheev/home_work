@@ -15,6 +15,10 @@ type Storage struct {
 	mu     sync.RWMutex
 }
 
+func (s *Storage) GetNotificationStatus(_ context.Context, _ string) (*common.NotificationStatus, error) {
+	panic("implement me")
+}
+
 func (s *Storage) ClearEventsNotification(_ context.Context, _ int) (sql.Result, error) {
 	return nil, nil
 }

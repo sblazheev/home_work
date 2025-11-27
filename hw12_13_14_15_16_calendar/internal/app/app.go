@@ -133,6 +133,14 @@ func (a *App) GetEvent(id interface{}) (*dto.Event, error) {
 	return storage.MapperEventToDtoEvent(&event)
 }
 
+func (a *App) GetNotificationStatus(ctx context.Context, id interface{}) (*common.NotificationStatus, error) {
+	err := uuid.Validate(id.(string))
+	if err != nil {
+		return nil, err
+	}
+	return a.storage.GetNotificationStatus(ctx, id.(string))
+}
+
 func (a *App) ListEvent() ([]*dto.Event, error) {
 	list, err := a.storage.List()
 	if err != nil {

@@ -1,6 +1,7 @@
 package internalhttp
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -34,6 +35,7 @@ func NewHandler(app app.App, logger common.LoggerInterface) *HTTPHandler {
 	mux.HandleFunc("/hello", handler.helloWorldHandler)
 	mux.HandleFunc("POST /event/update", handler.createEventHandler)
 	mux.HandleFunc("PUT /event/update", handler.updateEventHandler)
+	mux.HandleFunc("GET /event/status/{uuid}", handler.getEventNotificationStatusHandler)
 	mux.HandleFunc("GET /event/{uuid}", handler.getEventHandler)
 	mux.HandleFunc("DELETE /event/{uuid}", handler.deleteEventHandler)
 	mux.HandleFunc("GET /event/list", handler.listEventHandler)
@@ -74,7 +76,7 @@ func JSONError(httpcode int, code string, messageError string, err error, w http
 // @Accept       json
 // @Produce      json
 // @Param        data body dto.Event true  "Создание события"
-// @Success      200  {object} dto.Event
+// @Success      201  {object} dto.Event
 // @Failure		 400  {object} JSONErrorResponse
 // @Failure		 503  {object} JSONErrorResponse
 // @Router       /event/update [post] .
@@ -111,6 +113,7 @@ func (h *HTTPHandler) createEventHandler(w http.ResponseWriter, r *http.Request)
 			"Service Unavailable", common.ErrServiceUnavailable, w)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 	w.Write(dtoEventJSON)
 }
 
@@ -196,6 +199,48 @@ func (h *HTTPHandler) getEventHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(dtoEventJSON)
 }
 
+// @Summary      Получить событие
+// @Description  Получить событие
+// @Tags         Event
+// @Accept       json
+// @Produce      json
+// @Param    	 uuid    path  string true  "UUID события"
+// @Success      200  {object} common.NotificationStatus
+// @Failure		 404
+// @Router       /event/status/{uuid} [get] .
+func (h *HTTPHandler) getEventNotificationStatusHandler(w http.ResponseWriter, r *http.Request) {
+	uid := r.PathValue("uuid")
+	err := uuid.Validate(uid)
+	if err != nil {
+		h.logger.Debug("getEventNotificationStatusHandler-Uuid invalid format", "uuid", uid, "err", err)
+		JSONError(http.StatusBadRequest, strconv.Itoa(http.StatusBadRequest), "Uuid invalid format", err, w)
+		return
+	}
+	status, err := h.app.GetNotificationStatus(context.Background(), uid)
+	if err != nil {
+		if errors.Is(err, common.ErrEventNotFound) {
+			h.logger.Debug("getEventNotificationStatusHandler-NotFound", "uuid", uid, "err", err)
+			JSONError(http.StatusNotFound, strconv.Itoa(http.StatusNotFound), "NotFound", err, w)
+		} else {
+			h.logger.Error("getEventNotificationStatusHandler", "uuid", uid, "err", err)
+			JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+				"Service Unavailable", common.ErrServiceUnavailable, w)
+		}
+		return
+	}
+	eventJSON, err := json.Marshal(status)
+	if err != nil {
+		h.logger.Error("getEventNotificationStatusHandler-Json marshal", "err", err)
+		JSONError(http.StatusServiceUnavailable, strconv.Itoa(http.StatusServiceUnavailable),
+			"Service Unavailable", common.ErrServiceUnavailable, w)
+		return
+	}
+	if status == nil {
+		w.WriteHeader(http.StatusNotFound)
+	}
+	w.Write(eventJSON)
+}
+
 // @Summary      Удалить событие
 // @Description  Удалить событие
 // @Tags         Event
@@ -205,7 +250,7 @@ func (h *HTTPHandler) getEventHandler(w http.ResponseWriter, r *http.Request) {
 // @Success      204
 // @Router       /event/{uuid} [delete] .
 func (h *HTTPHandler) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
-	uid := r.PathValue("uid")
+	uid := r.PathValue("uuid")
 	err := uuid.Validate(uid)
 	if err != nil {
 		h.logger.Debug("deleteEventHandler-Uuid invalid format", "uuid", uid, "err", err)
