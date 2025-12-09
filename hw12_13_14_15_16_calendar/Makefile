@@ -112,4 +112,16 @@ clear:
 	make down
 	make docker-clear
 
+kub-info:
+	kubectl get pods -A
+
+helm-dep:
+	helm dependency build calendar-chart
+
+helm-up-http:
+	helm install calendar-app chart --insecure-skip-tls-verify --namespace calendar-app --create-namespace
+
+helm-down-http:
+	helm uninstall calendar-app --namespace calendar-app
+
 .PHONY: build run build-img run-img version test lint down-test

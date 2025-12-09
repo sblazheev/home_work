@@ -19,8 +19,6 @@ import (
 	"github.com/spf13/cobra"                                                                  //nolint:depguard
 )
 
-var configFile string
-
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Запуск веб сервера",
