@@ -1,0 +1,91 @@
+# Default values for calendar-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameSpace: "calendar-app"
+app: "calendar-app"
+replicaCount: 1
+logLevel: debug
+
+ingress-nginx:
+  enabled: true
+
+ingress:
+  className: nginx
+  http:
+    host: "api.calendar.local"
+    path: /
+  grpc:
+    host: "grpc.calendar.local"
+    path: /
+
+calendarHttp:
+  name: "calendar-http"
+  type: LoadBalancer
+  pullPolicy: IfNotPresent
+  image: "registry.wsrubi.ru/calendar/calendar"
+  tag: "latest"
+  command: [ "/opt/calendar/calendar" ]
+  args: [ "serve" ]
+  overlapping: true
+  typeStorage: "sql"
+  bind: "0.0.0.0"
+  port: 80
+
+calendarGrpc:
+  name: "calendar-grpc"
+  type: LoadBalancer
+  pullPolicy: IfNotPresent
+  image: "registry.wsrubi.ru/calendar/calendar"
+  tag: "latest"
+  command: [ "/opt/calendar/calendar" ]
+  args: [ "grpc" ]
+  overlapping: true
+  typeStorage: "sql"
+  bind: "0.0.0.0"
+  port: 80
+
+calendarScheduler:
+  name: "calendar-scheduler"
+  pullPolicy: IfNotPresent
+  image: "registry.wsrubi.ru/calendar/calendar"
+  tag: "latest"
+  command: [ "/opt/calendar/calendar" ]
+  args: [ "scheduler" ]
+  interval: 10
+  queue: "calendar_notify"
+
+calendarSender:
+  name: "calendar-sender"
+  pullPolicy: IfNotPresent
+  image: "registry.wsrubi.ru/calendar/calendar"
+  tag: "latest"
+  command: [ "/opt/calendar/calendar" ]
+  args: [ "sender" ]
+  queue: "calendar_notify"
+
+postgresql:
+  enabled: true
+  host: calendar-app-postgresql
+  port: 5432
+  user: postgres
+  password: postgres
+  database: calendar
+  auth:
+    username: postgres
+    password: postgres
+    database: calendar
+  primary:
+    persistence:
+      enabled: false
+
+rabbitmq:
+  host: calendar-http-rabbitmq
+  port: 5672
+  persistence:
+    enabled: false
+  auth:
+    username: guest
+    password: guest
+    erlangCookie: secretcookie
+

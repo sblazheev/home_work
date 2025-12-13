@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
 )
 
 func loggingMiddleware(next http.Handler, logger common.LoggerInterface) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s := time.Now()
-		rw := NewLoggingResponseWriter(w)
+		rw := NewStatusResponseWriter(w)
 		next.ServeHTTP(rw, r)
 
 		l := time.Since(s)
@@ -36,5 +36,12 @@ func loggingMiddleware(next http.Handler, logger common.LoggerInterface) http.Ha
 				Status:    rw.statusCode,
 				Latency:   int(l.Milliseconds()),
 			})
+	})
+}
+
+func errorJSONMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextW := NewStatusResponseWriter(w)
+		next.ServeHTTP(nextW, r)
 	})
 }

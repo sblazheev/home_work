@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/heetch/confita"              //nolint:depguard
-	"github.com/heetch/confita/backend/env"  //nolint:depguard
-	"github.com/heetch/confita/backend/file" //nolint:depguard
+	"github.com/heetch/confita" //nolint:depguard
+	"github.com/heetch/confita/backend/env"
+	"github.com/heetch/confita/backend/file"
 )
 
 var (
@@ -17,9 +17,18 @@ var (
 )
 
 type Config struct {
-	Logger  LogConfig
-	Storage StorageConfig
-	Server  ServerConfig
+	App       AppConfig
+	Logger    LogConfig
+	Storage   StorageConfig
+	HTTP      HTTPConfig
+	Grpc      GrpcConfig
+	Broker    BrokerConfig
+	Scheduler SchedulerConfig
+	Sender    SenderConfig
+}
+
+type AppConfig struct {
+	Overlapping bool `config:"overlapping"`
 }
 
 type LogConfig struct {
@@ -31,24 +40,63 @@ type StorageConfig struct {
 	Dsn  string `config:"dsn"`
 }
 
-type ServerConfig struct {
+type HTTPConfig struct {
 	Host string `config:"host"`
 	Port string `config:"port"`
+}
+
+type GrpcConfig struct {
+	Host string `config:"host"`
+	Port string `config:"port"`
+}
+
+type BrokerConfig struct {
+	Queue QueueConfig
+	Ampq  string `config:"ampq"`
+}
+
+type QueueConfig struct {
+	Notify string `config:"notify"`
+}
+
+type SchedulerConfig struct {
+	Interval int `config:"interval"`
+	KeepDays int `config:"keepdays"`
+	Chunk    int `config:"chunk"`
+}
+
+type SenderConfig struct {
+	Interval int `config:"interval"`
 }
 
 func New(configPath string) (*Config, error) {
 	loggerLeverPosible := []string{"info", "warn", "debug", "error", ""}
 	cfg := Config{
+		App: AppConfig{
+			Overlapping: true,
+		},
 		Logger: LogConfig{
 			Level: "info",
 		},
-		Storage: StorageConfig{},
-		Server:  ServerConfig{},
+		Storage:   StorageConfig{},
+		HTTP:      HTTPConfig{},
+		Grpc:      GrpcConfig{},
+		Broker:    BrokerConfig{},
+		Scheduler: SchedulerConfig{Chunk: 100, KeepDays: 365, Interval: 10},
+		Sender:    SenderConfig{Interval: 10},
 	}
-	loader := confita.NewLoader(
-		file.NewBackend(configPath),
-		env.NewBackend(),
-	)
+	var loader *confita.Loader
+	if len(configPath) > 0 {
+		loader = confita.NewLoader(
+			file.NewBackend(configPath),
+			env.NewBackend(),
+		)
+	} else {
+		loader = confita.NewLoader(
+			env.NewBackend(),
+		)
+	}
+
 	err := loader.Load(context.Background(), &cfg)
 	if err != nil {
 		return &cfg, ErrLoadConfig

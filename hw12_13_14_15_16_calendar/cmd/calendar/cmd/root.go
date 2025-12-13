@@ -9,19 +9,21 @@ import (
 	"github.com/spf13/cobra" //nolint:depguard
 )
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "calendar",
 	Short: "Calendar",
 	Long:  `Calendar`,
 }
 
+var configFile string
+
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

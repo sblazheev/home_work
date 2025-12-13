@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar-grpc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "calendar-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.calendarGrpc.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.calendarGrpc.name }}
+    spec:
+      initContainers:
+        - name: init-script
+          image: "{{ .Values.calendarGrpc.image }}:{{ .Values.calendarGrpc.tag }}"
+          command: {{ .Values.calendarGrpc.command }}
+          args: ['migrate']
+          envFrom:
+            - configMapRef:
+                name:
+                  calendar-config
+          restartPolicy: OnFailure
+      containers:
+        - name: {{ .Values.calendarGrpc.name }}
+          image: "{{ .Values.calendarGrpc.image }}:{{ .Values.calendarGrpc.tag }}"
+          command: {{ .Values.calendarGrpc.command }}
+          args: {{ .Values.calendarGrpc.args }}
+          ports:
+            - containerPort: {{ .Values.calendarGrpc.port }}
+          envFrom:
+            - configMapRef:
+                name: calendar-config

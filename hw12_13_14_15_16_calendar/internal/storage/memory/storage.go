@@ -1,15 +1,38 @@
 package memorystorage
 
 import (
+	"context"
+	"database/sql"
 	"sync"
+	"time"
 
-	"github.com/google/uuid"                                                        //nolint:depguard
-	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/common" //nolint:depguard
+	"github.com/google/uuid"                                                //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
 )
 
 type Storage struct {
 	events map[string]common.Event
 	mu     sync.RWMutex
+}
+
+func (s *Storage) GetNotificationStatus(_ context.Context, _ string) (*common.NotificationStatus, error) {
+	panic("implement me")
+}
+
+func (s *Storage) ClearEventsNotification(_ context.Context, _ int) (sql.Result, error) {
+	return nil, nil
+}
+
+func (s *Storage) SaveNotificationStatus(_ context.Context, _ *common.NotificationStatus) error {
+	return nil
+}
+
+func (s *Storage) ListEventsNotification(_ context.Context, _ int) ([]*common.Event, error) {
+	return nil, nil
+}
+
+func (s *Storage) ListByUserInRange(_ string, _, _ time.Time) ([]*common.Event, error) {
+	return nil, nil
 }
 
 func New() common.StorageDriverInterface {
@@ -68,17 +91,31 @@ func (s *Storage) GetByID(id interface{}) (common.Event, error) {
 	return event, nil
 }
 
-func (s *Storage) List() ([]common.Event, error) {
+func (s *Storage) List() ([]*common.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	result := make([]common.Event, 0, len(s.events))
+	result := make([]*common.Event, 0, len(s.events))
 	for _, v := range s.events {
-		result = append(result, v)
+		result = append(result, &v)
 	}
 	return result, nil
 }
 
 func (s *Storage) PrepareStorage(_ common.LoggerInterface) error {
 	return nil
+}
+
+func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	ecStart, ecFinish := ec.DateTime.Unix(), ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Unix() //nolint:gosec
+	for _, e := range s.events {
+		eStart, eFinish := e.DateTime.Unix(), e.DateTime.Add(time.Duration(e.Duration)*time.Second).Unix() //nolint:gosec
+
+		if ecStart >= eStart && ecStart <= eFinish || ecStart <= eStart && ecFinish <= eFinish {
+			return true, nil
+		}
+	}
+	return false, nil
 }
