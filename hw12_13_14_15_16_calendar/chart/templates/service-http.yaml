@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.calendarHttp.name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.calendarHttp.name }}
+  ports:
+    - port: {{ .Values.calendarHttp.port }}
+      targetPort: {{ .Values.calendarHttp.port }}
+      protocol: TCP

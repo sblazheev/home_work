@@ -97,6 +97,7 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 	provider, err := goose.NewProvider(database.DialectPostgres, s.db.DB, migrations.Embed)
 	if err != nil {
 		log.Error("init goose", "error", err)
+		return err
 	}
 	sources := provider.ListSources()
 	for _, s := range sources {
@@ -106,6 +107,7 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 	stats, err := provider.Status(*s.ctx)
 	if err != nil {
 		log.Error("status", "error", err)
+		return err
 	}
 	for _, s := range stats {
 		log.Info("Migrate status", "type", s.Source.Type, "version", s.Source.Version, "duration", s.State)
@@ -113,6 +115,7 @@ func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
 	results, err := provider.Up(*s.ctx)
 	if err != nil {
 		log.Error("up", "error", err)
+		return err
 	}
 	for _, r := range results {
 		log.Info("Migrate done", "type", r.Source.Type, "version", r.Source.Version, "duration", (r.Duration).String())

@@ -15,6 +15,8 @@ var RootCmd = &cobra.Command{
 	Long:  `Calendar`,
 }
 
+var configFile string
+
 func Execute() {
 	err := RootCmd.Execute()
 	if err != nil {

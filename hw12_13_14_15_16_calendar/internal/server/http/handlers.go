@@ -32,7 +32,7 @@ func NewHandler(app app.App, logger common.LoggerInterface) *HTTPHandler {
 
 	handler := &HTTPHandler{app, logger, mux}
 
-	mux.HandleFunc("/hello", handler.helloWorldHandler)
+	mux.HandleFunc("/ping", handler.pingHandler)
 	mux.HandleFunc("POST /event/update", handler.createEventHandler)
 	mux.HandleFunc("PUT /event/update", handler.updateEventHandler)
 	mux.HandleFunc("GET /event/status/{uuid}", handler.getEventNotificationStatusHandler)
@@ -48,9 +48,9 @@ func NewHandler(app app.App, logger common.LoggerInterface) *HTTPHandler {
 	return handler
 }
 
-func (h *HTTPHandler) helloWorldHandler(w http.ResponseWriter, _ *http.Request) {
+func (h *HTTPHandler) pingHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("hello-world"))
+	_, _ = w.Write([]byte("pong"))
 }
 
 func JSONError(httpcode int, code string, messageError string, err error, w http.ResponseWriter) {
