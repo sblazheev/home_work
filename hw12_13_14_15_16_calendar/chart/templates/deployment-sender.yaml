@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar-sender
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "calendar-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.calendarSender.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.calendarSender.name }}
+    spec:
+      containers:
+        - name: {{ .Values.calendarSender.name }}
+          image: "{{ .Values.calendarSender.image }}:{{ .Values.calendarSender.tag }}"
+          imagePullPolicy: {{ .Values.calendarSender.pullPolicy }}
+          command: {{ .Values.calendarSender.command }}
+          args: {{ .Values.calendarSender.args }}
+          envFrom:
+            - configMapRef:
+                name: calendar-config

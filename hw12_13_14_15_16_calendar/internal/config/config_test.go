@@ -16,6 +16,8 @@ func TestConfig(t *testing.T) {
 			Logger: LogConfig{
 				Level: "info",
 			},
+			Scheduler: SchedulerConfig{Chunk: 100, KeepDays: 365, Interval: 10},
+			Sender:    SenderConfig{Interval: 10},
 		}, config)
 		require.NoError(t, err)
 	})

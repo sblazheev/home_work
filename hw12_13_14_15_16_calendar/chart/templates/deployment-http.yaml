@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar-http
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "calendar-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.calendarHttp.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.calendarHttp.name }}
+    spec:
+      initContainers:
+        - name: init-script
+          image: "{{ .Values.calendarHttp.image }}:{{ .Values.calendarHttp.tag }}"
+          command: {{ .Values.calendarHttp.command }}
+          args: ['migrate']
+          envFrom:
+            - configMapRef:
+                name:
+                  calendar-config
+          restartPolicy: OnFailure
+      containers:
+        - name: {{ .Values.calendarHttp.name }}
+          image: "{{ .Values.calendarHttp.image }}:{{ .Values.calendarHttp.tag }}"
+          command: {{ .Values.calendarHttp.command }}
+          args: {{ .Values.calendarHttp.args }}
+          ports:
+            - containerPort: {{ .Values.calendarHttp.port }}
+          envFrom:
+            - configMapRef:
+                name: calendar-config

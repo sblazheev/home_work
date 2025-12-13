@@ -59,7 +59,6 @@ var grpcCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(grpcCmd)
+	RootCmd.AddCommand(grpcCmd)
 	grpcCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to Config file")
-	grpcCmd.MarkFlagRequired("config")
 }
