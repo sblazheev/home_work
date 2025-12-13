@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calendar-config
+  namespace: "{{ .Release.Namespace }}"
+data:
+  OVERLAPPING: "{{ .Values.calendarHttp.overlapping }}"
+  TYPE: {{ .Values.calendarHttp.typeStorage }}
+  HOST: {{ .Values.calendarHttp.bind }}
+  PORT: "{{ .Values.calendarHttp.port }}"
+  DSN: "postgresql://{{ .Values.postgresql.user }}:{{ .Values.postgresql.password }}@{{ .Release.Namespace }}-postgresql:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}?sslmode=disable"
+  AMPQ: "amqp://{{ .Values.rabbitmq.auth.username }}:{{ .Values.rabbitmq.auth.password }}@{{ .Release.Namespace }}-rabbitmq:{{ .Values.rabbitmq.port }}"
+  NOTIFY: {{ .Values.calendarScheduler.queue }}
+  INTERVAL: "{{ .Values.calendarScheduler.interval }}"
+  LEVEL: "{{ .Values.logLevel }}"

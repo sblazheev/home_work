@@ -1,0 +1,289 @@
+basePath: /
+definitions:
+  Event:
+    properties:
+      dateTime:
+        example: 1740000000
+        maximum: 2762340413
+        minimum: 1740000000
+        type: integer
+      description:
+        example: Description
+        type: string
+      duration:
+        example: 600
+        type: integer
+      id:
+        example: 00000000-0000-0000-0000-000000000000
+        type: string
+      notifyTime:
+        example: 600
+        type: integer
+      title:
+        example: Title
+        type: string
+      userId:
+        example: "1"
+        minLength: 1
+        type: string
+    required:
+    - dateTime
+    - duration
+    - title
+    - userId
+    type: object
+  JSONError:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      message:
+        type: string
+    type: object
+  common.NotificationStatus:
+    properties:
+      createTime:
+        type: string
+      eventId:
+        type: string
+      sendTime:
+        type: string
+      status:
+        type: integer
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: 192.168.2.64
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Сервер календаря.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Calendar API
+  version: "0.1"
+paths:
+  /event/{uuid}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить событие
+      parameters:
+      - description: Удалить событие
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Удалить событие
+      tags:
+      - Event
+    get:
+      consumes:
+      - application/json
+      description: Получить событие
+      parameters:
+      - description: UUID события
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Event'
+      summary: Получить событие
+      tags:
+      - Event
+  /event/list:
+    get:
+      consumes:
+      - application/json
+      description: Список событий
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий
+      tags:
+      - Event
+  /event/listday:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за сутки
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за сутки
+      tags:
+      - Event
+  /event/listmonth:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за месяц
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата первого дня месяц в формате YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за месяц
+      tags:
+      - Event
+  /event/listweek:
+    get:
+      consumes:
+      - application/json
+      description: Список событий для пользователя за неделю
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user
+        required: true
+        type: string
+      - description: Дата первого дня недели в формате YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Event'
+            type: array
+      summary: Список событий для пользователя за неделю
+      tags:
+      - Event
+  /event/status/{uuid}:
+    get:
+      consumes:
+      - application/json
+      description: Получить событие
+      parameters:
+      - description: UUID события
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.NotificationStatus'
+        "404":
+          description: Not Found
+      summary: Получить событие
+      tags:
+      - Event
+  /event/update:
+    post:
+      consumes:
+      - application/json
+      description: Создать событие
+      parameters:
+      - description: Создание события
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/Event'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/JSONError'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/JSONError'
+      summary: Создать событие
+      tags:
+      - Event
+    put:
+      consumes:
+      - application/json
+      description: Измененить событие
+      parameters:
+      - description: Изменение события
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/Event'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Event'
+      summary: Измененить событие
+      tags:
+      - Event
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

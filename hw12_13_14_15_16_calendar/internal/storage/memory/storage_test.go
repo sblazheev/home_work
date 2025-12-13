@@ -1,7 +1,75 @@
 package memorystorage
 
-import "testing"
+import (
+	"testing"
+	"time"
 
-func TestStorage(t *testing.T) {
-	// TODO
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common" //nolint:depguard
+	"github.com/stretchr/testify/require"                                   //nolint:depguard
+)
+
+func TestMemoryStorage(t *testing.T) {
+	event := common.NewEvent("", "Test", time.Now(), 15, "Test", 0, 0)
+
+	event1 := common.NewEvent("", "Test 1", event.DateTime.Add(time.Second*-1), 15, "Test 1", 0, 0)
+	event2 := common.NewEvent("", "Test 2", event.DateTime.Add(time.Second), 15, "Test 2", 0, 0)
+	event3 := common.NewEvent("", "Test 3", event.DateTime.Add(time.Second*16), 15, "Test 3", 0, 0)
+
+	t.Run("Storage create", func(t *testing.T) {
+		s := New()
+		require.Equal(t, &Storage{events: make(map[string]common.Event, 0)}, s)
+	})
+	t.Run("Add event", func(t *testing.T) {
+		storage := New()
+
+		newEvent, err := storage.Add(*event)
+		require.NoError(t, err)
+		event.ID = newEvent.ID
+		require.Equal(t, event, &newEvent)
+	})
+	t.Run("Update event", func(t *testing.T) {
+		storage := New()
+
+		newEvent, err := storage.Add(*event)
+		require.NoError(t, err)
+		require.Equal(t, event, &newEvent)
+
+		newEvent.User = 1
+		err = storage.Update(newEvent)
+		require.NoError(t, err)
+
+		updateEvent, err := storage.GetByID(newEvent.ID)
+		require.NoError(t, err)
+		require.Equal(t, &newEvent, &updateEvent)
+	})
+
+	t.Run("Check Overlapping", func(t *testing.T) {
+		storage := New()
+
+		_, err := storage.Add(*event)
+		require.NoError(t, err)
+		res := false
+		res, _ = storage.IsOverlapping(event)
+		require.Equal(t, true, res)
+		res, _ = storage.IsOverlapping(event1)
+		require.Equal(t, true, res)
+		res, _ = storage.IsOverlapping(event2)
+		require.Equal(t, true, res)
+		res, _ = storage.IsOverlapping(event3)
+		require.Equal(t, false, res)
+	})
+
+	t.Run("Delete event", func(t *testing.T) {
+		storage := New()
+
+		newEvent, err := storage.Add(*event)
+		require.NoError(t, err)
+		require.Equal(t, event, &newEvent)
+
+		err = storage.Delete(newEvent.ID)
+		require.NoError(t, err)
+
+		_, err = storage.GetByID(newEvent.ID)
+		require.ErrorIs(t, common.ErrEventNotFound, err)
+	})
 }

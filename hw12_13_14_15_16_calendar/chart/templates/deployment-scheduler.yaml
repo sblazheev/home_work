@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calendar-scheduler
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "calendar-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.calendarScheduler.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.calendarScheduler.name }}
+    spec:
+      containers:
+        - name: {{ .Values.calendarScheduler.name }}
+          image: "{{ .Values.calendarScheduler.image }}:{{ .Values.calendarScheduler.tag }}"
+          imagePullPolicy: {{ .Values.calendarScheduler.pullPolicy }}
+          command: {{ .Values.calendarScheduler.command }}
+          args: {{ .Values.calendarScheduler.args }}
+          envFrom:
+            - configMapRef:
+                name: calendar-config

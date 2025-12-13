@@ -1,20 +1,197 @@
 package sqlstorage
 
-import "context"
+import (
+	"context"
+	"database/sql"
+	"path/filepath"
+	"time"
 
-type Storage struct { // TODO
+	"github.com/google/uuid"        //nolint:depguard
+	_ "github.com/jackc/pgx/stdlib" //nolint:depguard
+	"github.com/jmoiron/sqlx"       //nolint:depguard
+	"github.com/pressly/goose/v3"
+	"github.com/pressly/goose/v3/database"                                                  //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/common"                 //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/config"                 //nolint:depguard
+	"github.com/sblazheev/home_work/hw12_13_14_15_calendar/internal/storage/sql/migrations" //nolint:depguard
+)
+
+type Storage struct {
+	db  *sqlx.DB
+	c   config.StorageConfig
+	err error
+	ctx *context.Context
 }
 
-func New() *Storage {
-	return &Storage{}
+func New(ctx *context.Context, c config.StorageConfig) common.StorageDriverInterface {
+	s := &Storage{c: c, ctx: ctx}
+	s.err = s.Connect(*ctx)
+	return s
 }
 
 func (s *Storage) Connect(ctx context.Context) error {
-	// TODO
+	s.db, s.err = sqlx.ConnectContext(ctx, "pgx", s.c.Dsn)
+	if s.err != nil {
+		return s.err
+	}
+	s.err = s.db.PingContext(ctx)
+	return s.err
+}
+
+func (s *Storage) Close() error {
+	s.err = s.db.Close()
+	return s.err
+}
+
+func (s *Storage) Add(event common.Event) (common.Event, error) {
+	if event.ID.(string) == "" {
+		event.ID = uuid.New().String()
+	}
+	sql := `INSERT INTO events("id","title","date_time","duration","description","user","notify_time") 
+VALUES(:id, :title, :date_time, :duration, :description, :user, :notify_time)`
+	_, err := s.db.NamedExecContext(*s.ctx, sql, event)
+	if err != nil {
+		return event, err
+	}
+	return event, err
+}
+
+func (s *Storage) Update(event common.Event) error {
+	sql := `UPDATE events SET "title" = :title,"date_time" = :date_time,"duration" = :duration,
+                  "description" = :description,"user" = :user,
+                  "notify_time" = :notify_time WHERE id = :id`
+	_, err := s.db.NamedExecContext(*s.ctx, sql, event)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (s *Storage) Delete(id interface{}) error {
+	sql := `DELETE FROM events WHERE id = $1`
+	_, err := s.db.ExecContext(*s.ctx, sql, id)
+	return err
+}
+
+func (s *Storage) GetByID(id interface{}) (common.Event, error) {
+	event := common.Event{}
+	sql := `SELECT "id","title","date_time","duration","description","user","notify_time" FROM events WHERE id = $1`
+	err := s.db.GetContext(*s.ctx, &event, sql, id)
+	if err != nil && err.Error() == "sql: no rows in result set" {
+		return event, common.ErrEventNotFound
+	}
+	return event, err
+}
+
+func (s *Storage) List() ([]*common.Event, error) {
+	event := make([]*common.Event, 0)
+	sql := `SELECT "id","title","date_time","duration","description","user","notify_time" FROM events`
+	err := s.db.SelectContext(*s.ctx, &event, sql)
+	if err != nil && err.Error() == "sql: no rows in result set" {
+		return event, common.ErrEventNotFound
+	}
+	return event, err
+}
+
+func (s *Storage) PrepareStorage(log common.LoggerInterface) error {
+	provider, err := goose.NewProvider(database.DialectPostgres, s.db.DB, migrations.Embed)
+	if err != nil {
+		log.Error("init goose", "error", err)
+		return err
+	}
+	sources := provider.ListSources()
+	for _, s := range sources {
+		log.Info("Migration item", "type", s.Type, "version", s.Version, "path", filepath.Base(s.Path))
+	}
+
+	stats, err := provider.Status(*s.ctx)
+	if err != nil {
+		log.Error("status", "error", err)
+		return err
+	}
+	for _, s := range stats {
+		log.Info("Migrate status", "type", s.Source.Type, "version", s.Source.Version, "duration", s.State)
+	}
+	results, err := provider.Up(*s.ctx)
+	if err != nil {
+		log.Error("up", "error", err)
+		return err
+	}
+	for _, r := range results {
+		log.Info("Migrate done", "type", r.Source.Type, "version", r.Source.Version, "duration", (r.Duration).String())
+	}
+
 	return nil
 }
 
-func (s *Storage) Close(ctx context.Context) error {
-	// TODO
-	return nil
+func (s *Storage) IsOverlapping(ec *common.Event) (bool, error) {
+	count := 0
+	var err error
+	if len(ec.ID.(string)) > 0 {
+		sql := `SELECT count(*) as count FROM events e where e.ID != $3::uuid AND tstzrange(e.date_time,e.date_time 
++ make_interval(secs => e.duration)) && tstzrange($1::timestamptz, $2::timestamptz);`
+		err = s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
+			ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339), //nolint:gosec
+			ec.ID.(string))
+	} else {
+		sql := `SELECT count(*) as count FROM events e where tstzrange(e.date_time,e.date_time 
++ make_interval(secs => e.duration)) && tstzrange($1::timestamptz, $2::timestamptz);`
+		err = s.db.GetContext(*s.ctx, &count, sql, ec.DateTime.Format(time.RFC3339),
+			ec.DateTime.Add(time.Duration(ec.Duration)*time.Second).Format(time.RFC3339)) //nolint:gosec
+	}
+	if err != nil {
+		return true, err
+	}
+	if count > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (s *Storage) ListByUserInRange(user string, from, to time.Time) ([]*common.Event, error) {
+	var events []*common.Event
+	sql := `SELECT * FROM events WHERE "user" = $1 AND date_time >= $2::date AND date_time < $3::date`
+	err := s.db.Select(&events, sql, user, from.Format(time.DateOnly), to.Format(time.DateOnly))
+	return events, err
+}
+
+func (s *Storage) ListEventsNotification(ctx context.Context, limit int) ([]*common.Event, error) {
+	var events []*common.Event
+	sql := `SELECT e.* FROM events e left join 
+    "notify" n on e.id = n.event_id  WHERE e.notify_time > 0 and now() > date_time - 
+    make_interval(secs => e.notify_time) and n.status is null AND date_time > now()
+    order by date_time - make_interval(secs => e.notify_time) asc limit $1;`
+	err := s.db.SelectContext(ctx, &events, sql, limit)
+	return events, err
+}
+
+func (s *Storage) ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error) {
+	sql := `delete from "notify" where create_time < now() - make_interval(days => $1);`
+	return s.db.ExecContext(ctx, sql, keepDays)
+}
+
+func (s *Storage) SaveNotificationStatus(ctx context.Context, status *common.NotificationStatus) error {
+	sql := `INSERT INTO notify("event_id","create_time","status")  VALUES(:event_id, :create_time, :status)
+ON CONFLICT (event_id) DO UPDATE SET
+send_time = EXCLUDED.send_time,
+		status = EXCLUDED.status`
+	if !status.SendTime.IsZero() {
+		sql = `INSERT INTO notify("event_id","send_time","status")  VALUES(:event_id, :send_time, :status)
+ON CONFLICT (event_id) DO UPDATE SET
+send_time = EXCLUDED.send_time,
+		status = EXCLUDED.status`
+	}
+	_, err := s.db.NamedExecContext(ctx, sql, *status)
+	return err
+}
+
+func (s *Storage) GetNotificationStatus(ctx context.Context, id string) (*common.NotificationStatus, error) {
+	var status []*common.NotificationStatus
+	sql := `SELECT event_id, COALESCE(send_time, '0001-01-01 00:00:00 +0000')::timestamptz as send_time, status, 
+       create_time FROM notify n WHERE n.event_id = $1::uuid;`
+	err := s.db.SelectContext(ctx, &status, sql, id)
+	if len(status) > 0 {
+		return status[0], err
+	}
+	return nil, err
 }
