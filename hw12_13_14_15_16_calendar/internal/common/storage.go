@@ -19,6 +19,7 @@ type StorageDriverInterface interface {
 	ListEventsNotification(ctx context.Context, limit int) ([]*Event, error)
 	SaveNotificationStatus(ctx context.Context, status *NotificationStatus) error
 	ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error)
+	GetNotificationStatus(ctx context.Context, id string) (*NotificationStatus, error)
 }
 
 type Storage struct {
@@ -71,4 +72,8 @@ func (s *Storage) SaveNotificationStatus(ctx context.Context, status *Notificati
 
 func (s *Storage) ClearEventsNotification(ctx context.Context, keepDays int) (sql.Result, error) {
 	return s.s.ClearEventsNotification(ctx, keepDays)
+}
+
+func (s *Storage) GetNotificationStatus(ctx context.Context, id string) (*NotificationStatus, error) {
+	return s.s.GetNotificationStatus(ctx, id)
 }

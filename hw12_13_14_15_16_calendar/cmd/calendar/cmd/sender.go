@@ -20,8 +20,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var configFile string
-
 var senderCmd = &cobra.Command{
 	Use:   "sender",
 	Short: "Запуск сервера отправки уведомлений",
@@ -76,6 +74,6 @@ var senderCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(senderCmd)
+	RootCmd.AddCommand(senderCmd)
 	senderCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to Config file")
 }

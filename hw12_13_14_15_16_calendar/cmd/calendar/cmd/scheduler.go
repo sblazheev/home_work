@@ -20,8 +20,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var configFile string
-
 var schedulerCmd = &cobra.Command{
 	Use:   "scheduler",
 	Short: "Запуск сервера создания уведомлений",
@@ -75,6 +73,6 @@ var schedulerCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(schedulerCmd)
+	RootCmd.AddCommand(schedulerCmd)
 	schedulerCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to Config file")
 }

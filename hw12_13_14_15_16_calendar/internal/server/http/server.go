@@ -46,7 +46,7 @@ func NewStatusResponseWriter(w http.ResponseWriter) *StatusResponseWriter {
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      192.168.2.64
+// @host      api.calendar.local
 // @BasePath  /
 
 // @securityDefinitions.basic  BasicAuth

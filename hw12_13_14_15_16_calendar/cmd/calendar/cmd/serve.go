@@ -19,8 +19,6 @@ import (
 	"github.com/spf13/cobra"                                                                  //nolint:depguard
 )
 
-var configFile string
-
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Запуск веб сервера",
@@ -72,5 +70,4 @@ var serveCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to Config file")
-	serveCmd.MarkFlagRequired("config")
 }
